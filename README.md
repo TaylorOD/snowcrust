@@ -8,7 +8,7 @@ a small 3d pizza project set around C0saN0stra Pizza. take a call, match the top
 
 Snowcrust is the project name. C0saN0stra Pizza is the restaurant.
 
-![loading toppings onto a pizza in the C0saN0stra kitchen](docs/screenshots/toppings-desktop-pizza.png)
+![the C0saN0stra kitchen with a ticket up](docs/screenshots/world-kitchen-desktop.png)
 
 ## how it works
 
