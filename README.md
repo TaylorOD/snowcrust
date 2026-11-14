@@ -8,6 +8,8 @@ a small 3d pizza project set around C0saN0stra Pizza. take a call, match the top
 
 Snowcrust is the project name. C0saN0stra Pizza is the restaurant.
 
+![loading toppings onto a pizza in the C0saN0stra kitchen](docs/screenshots/toppings-desktop-pizza.png)
+
 ## how it works
 
 six callers order from a menu of 14 toppings. sauce and mozzarella are already on the base. the ticket shows the extras they want.
@@ -17,6 +19,8 @@ you get two minutes once prep starts. the ticket is already 28 minutes into the 
 the customer scores the pizza from 0 to 100 based on the toppings. extras count against you. inspecting a slice lets you take a bite, which costs 10 points. delivery time is reported separately.
 
 reset clears the pizza and timer but keeps the caller. next call changes the customer. replay shows the pickup again with the original score and time.
+
+![a RadiKS kourier picking up the pizza](docs/screenshots/snowcrust-desktop-pickup.png)
 
 ## run it
 
@@ -70,3 +74,5 @@ GitHub Actions runs the checks on PRs and on main. merging to main publishes thr
 the build copies the page, source and Three.js into dist. tests, docs and screenshots are not published. everything is static. there is no backend.
 
 built with Three.js. needs WebGL. reduced motion uses a still handoff. old recipe links still work, but there is no share button.
+
+MIT license.
