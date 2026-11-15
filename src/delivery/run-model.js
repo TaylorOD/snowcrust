@@ -106,7 +106,10 @@ export function createDeliveryRun({ assisted = false } = {}) {
             ? state.crouch
             : false;
       if (!state.assisted && inLane && !clears && !state.protection) {
-        state.condition = Math.max(0, state.condition - (hazard.type === 'van' ? 15 : 5));
+        state.condition = Math.max(
+          0,
+          state.condition - (['van', 'works'].includes(hazard.type) ? 15 : 5)
+        );
         state.hits++;
         state.protection = 1.5;
         state.towed = false;

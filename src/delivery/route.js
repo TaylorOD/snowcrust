@@ -12,7 +12,7 @@ export const hazards = [
   [340, 0, 'frame'],
   [385, -1, 'van'],
   [430, -1, 'rail'],
-  [470, 0, 'van']
+  [470, 0, 'works']
 ].map(([distance, lane, type], id) => ({ id, distance, lane, type }));
 
 export function destinationFor(customer) {
