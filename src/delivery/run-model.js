@@ -13,6 +13,7 @@ export function createDeliveryRun({ assisted = false } = {}) {
     elapsed: 0,
     lane: 0,
     x: 0,
+    lean: 0,
     height: 0,
     crouch: false,
     condition: 100,
@@ -34,13 +35,16 @@ export function createDeliveryRun({ assisted = false } = {}) {
   function action(name) {
     if (state.paused || state.arrived) return;
     if (name === 'left' || name === 'right') {
-      const lane = clamp(state.lane + (name === 'left' ? -1 : 1), -1, 1);
-      if (lane !== state.lane) {
+      const direction = name === 'left' ? -1 : 1;
+      const lean = state.lean + direction * 0.7;
+      if (state.towed && Math.abs(lean) <= 0.71) {
+        state.lean = lean;
+      } else {
         state.towed = false;
-        state.lane = lane;
+        state.lean = 0;
+        state.lane = clamp(Math.round(state.x) + direction, -1, 1);
       }
     } else if (name === 'jump' && !state.jump) {
-      state.towed = false;
       state.jump = 0.91;
     } else if (name === 'duck') state.duck = 0.8;
     else if (name === 'hook') {
@@ -48,10 +52,11 @@ export function createDeliveryRun({ assisted = false } = {}) {
       else if (state.targetId >= 0 && !state.jump && Math.abs(state.x - state.lane) < 0.2) {
         state.towed = true;
         state.towId = state.targetId;
+        state.lean = 0;
       }
     }
     state.message = state.towed
-      ? 'tow attached / release before turning'
+      ? 'tow attached / steer to carve / space to release'
       : 'free skating / catch a tow';
   }
   function step(dt) {
@@ -66,8 +71,9 @@ export function createDeliveryRun({ assisted = false } = {}) {
     state.crouch = state.duck > 0;
     if (state.towed) {
       const pose = towPose(state.traffic[state.towId], state);
-      state.lane = Math.round(pose.x / laneWidth);
-      state.x += (pose.x / laneWidth - state.x) * Math.min(12 * dt, 1);
+      const target = clamp(pose.x / laneWidth + state.lean, -1, 1);
+      state.lane = Math.round(target);
+      state.x += (target - state.x) * Math.min(12 * dt, 1);
     } else state.x += (state.lane - state.x) * Math.min(12 * dt, 1);
     const scale = state.assisted ? 0.75 : 1;
     const car = state.traffic[state.towId];

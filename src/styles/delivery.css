@@ -284,3 +284,10 @@ body[data-mode='running'] #scene {
 body[data-mode='running'] main {
   padding-top: 0;
 }
+.run-prompt {
+  z-index: 2;
+  max-height: 76%;
+  overflow: auto;
+  box-sizing: border-box;
+  top: 18%;
+}

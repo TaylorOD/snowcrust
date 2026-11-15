@@ -148,3 +148,17 @@ test('following traffic leaves space for the rider', () => {
     }
   }
 });
+
+test('carving and jumping preserve the tow until an intentional release', () => {
+  const run = createDeliveryRun();
+  run.action('left');
+  advance(run, 1);
+  assert.equal(run.state.towed, true);
+  assert.ok(run.state.x < -0.6);
+  run.action('jump');
+  advance(run, 0.4);
+  assert.equal(run.state.towed, true);
+  assert.ok(run.state.height > 1);
+  run.action('hook');
+  assert.equal(run.state.towed, false);
+});
