@@ -1,3 +1,4 @@
+import { playDelivery } from '../delivery-pilot.js';
 import { finishHandoff } from './finish-handoff.js';
 import { chromium, expect } from '@playwright/test';
 
@@ -9,6 +10,7 @@ try {
     ['desktop', 1440, 1050],
     ['mobile', 390, 844]
   ]) {
+    if (process.env.TEST_DEVICE && process.env.TEST_DEVICE !== name) continue;
     const page = await browser.newPage({
       viewport: { width, height },
       reducedMotion: 'reduce',
@@ -63,7 +65,28 @@ try {
     await page.clock.fastForward(5000);
     await expect(page.locator('body')).toHaveAttribute('data-run-distance', distance);
     await page.locator('#run-resume').click();
-    for (let i = 0; i < 280; i++) await page.clock.fastForward(250);
+    // No input must fail, not silently award a completed delivery.
+    for (let i = 0; i < 370; i++) await page.clock.fastForward(250);
+    await expect(page.locator('#run-retry')).toBeVisible();
+    await expect(page.locator('#handover')).toBeHidden();
+    await page.locator('#run-retry').click();
+    const actions = [];
+    playDelivery((action) => actions.push(action));
+    let clock = 0;
+    for (const action of actions) {
+      const at = Math.round(action.at * 1000);
+      if (at > clock) {
+        let remaining = at - clock;
+        while (remaining > 0) {
+          const step = Math.min(250, remaining);
+          await page.clock.fastForward(step);
+          remaining -= step;
+        }
+      }
+      clock = at;
+      await page.locator('[data-run="' + action.name + '"]').click();
+    }
+    for (let i = 0; i < 60; i++) await page.clock.fastForward(250);
     await finishHandoff(page);
     await page
       .locator('#scene')
@@ -80,7 +103,7 @@ try {
     await expect(page.locator('#run-address')).toContainText('practice');
     await page.locator('#run-assist').check();
     await page.locator('#run-resume').click();
-    for (let i = 0; i < 380; i++) await page.clock.fastForward(250);
+    for (let i = 0; i < 700; i++) await page.clock.fastForward(250);
     await finishHandoff(page);
     await expect(page.locator('#practice-summary')).toContainText('original receipt kept');
     await page.screenshot({

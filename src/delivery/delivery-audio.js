@@ -91,7 +91,7 @@ export function createDeliveryAudio(host) {
     },
     frame(state) {
       if (context) {
-        const speed = state.paused ? 0 : state.speed;
+        const speed = state.paused || state.failed ? 0 : state.speed;
         wheels.gain.setTargetAtTime(speed * 0.004, context.currentTime, 0.06);
         engine.frequency.setTargetAtTime(45 + speed * 4, context.currentTime, 0.06);
         engineVolume.gain.setTargetAtTime(

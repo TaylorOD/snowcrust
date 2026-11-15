@@ -1,22 +1,23 @@
+import { routeLength, runTimeLimit } from '../delivery/route.js';
 import { roadGuidance } from '../delivery/road-guidance.js';
 
 // Input belongs to the road surface, never the kitchen.
-export function createDeliveryControls(host, { action, pause, resume }) {
+export function createDeliveryControls(host, { action, pause, resume, retry }) {
   const panel = document.createElement('section');
   panel.id = 'run-panel';
   panel.hidden = true;
   panel.setAttribute('aria-label', 'Delivery controls');
   panel.innerHTML = `
     <div class="run-hud"><span id="run-address"></span>
-      <span id="run-distance"></span><span id="run-condition"></span><span id="run-clock"></span>
+      <span id="run-distance"></span><span id="run-speed"></span><span id="run-condition"></span><span id="run-clock"></span>
       <button id="run-pause" aria-label="Pause delivery">pause</button></div>
     <div id="run-prompt" class="run-prompt">
-      <h2>your delivery.</h2><p>three lanes. keep the box intact.</p>
+      <h2>your delivery.</h2><p id="run-result" hidden></p><p>90 seconds. three lanes. keep the box intact.</p>
       <p>← → steer · ↑ jump · ↓ duck<br>space to catch or release a tow</p>
-      <p>steer once to carve behind a car. steer again to leave the tow. jumping and ducking keep the line attached.</p>
+      <p>one swipe, one lane. steer while attached. release before your tow takes the wrong exit.</p>
       <p>on a phone, swipe or use the buttons below.</p>
       <label><input type="checkbox" id="run-assist"> slower road / no damage</label><br>
-      <button id="run-resume">start skating</button>
+      <button id="run-resume">start skating</button><button id="run-retry" hidden>retry delivery</button>
     </div>
     <div class="run-buttons">
       <button data-run="left" aria-label="Move left">←</button>
@@ -34,6 +35,7 @@ export function createDeliveryControls(host, { action, pause, resume }) {
     })
   );
   $('run-pause').onclick = pause;
+  $('run-retry').onclick = () => retry($('run-assist').checked);
   $('run-resume').onclick = () => {
     const assisted = $('run-assist').checked;
     if (assisted) $('run-assist').disabled = true;
@@ -84,9 +86,17 @@ export function createDeliveryControls(host, { action, pause, resume }) {
   return {
     show(address) {
       panel.hidden = false;
+      panel.querySelectorAll('[data-run]').forEach((button) => {
+        button.disabled = false;
+      });
       $('run-assist').checked = false;
       $('run-assist').disabled = false;
       $('run-address').textContent = address;
+      $('run-retry').hidden = true;
+      $('run-prompt').classList.remove('run-failed');
+      $('run-result').hidden = true;
+      $('run-resume').hidden = false;
+      panel.querySelector('.run-prompt h2').textContent = 'your delivery.';
     },
     hide() {
       panel.hidden = true;
@@ -99,24 +109,44 @@ export function createDeliveryControls(host, { action, pause, resume }) {
       if (value) $('run-resume').focus({ preventScroll: true });
       else host.focus({ preventScroll: true });
     },
-    frame(state, clock) {
-      $('run-distance').textContent = Math.max(0, Math.ceil(560 - state.distance)) + ' m';
+    frame(state) {
+      $('run-distance').textContent = Math.max(0, Math.ceil(routeLength - state.distance)) + ' m';
       $('run-condition').textContent =
         'box ' + state.condition + '%' + (state.assisted ? ' / assisted' : '');
-      $('run-clock').textContent = clock;
+      $('run-clock').textContent = Math.max(0, Math.ceil(runTimeLimit - state.elapsed)) + 's route';
+      $('run-speed').textContent = Math.round(state.speed * 3.6) + ' km/h';
       $('run-condition').style.color = state.protection > 0 ? '#ffb477' : '';
-      $('run-hook').textContent = state.towed ? 'release tow' : 'catch tow';
-      $('run-hook').disabled =
-        state.approaching ||
-        (!state.towed &&
-          (state.targetId < 0 || state.jump > 0 || Math.abs(state.x - state.lane) >= 0.2));
-      if (!state.towed && state.targetId < 0) $('run-hook').textContent = 'out of reach';
+      $('run-hook').textContent = state.towed
+        ? 'release tow'
+        : state.hookFlight
+          ? 'poon away'
+          : 'fire poon';
+      $('run-hook').disabled = state.failed || state.approaching || state.hookCooldown > 0;
       if (state.approaching) $('run-hook').textContent = 'arriving';
       panel.querySelectorAll('[data-run]:not(#run-hook)').forEach((button) => {
-        button.disabled = state.approaching;
+        button.disabled = state.approaching || state.failed;
       });
+      if (state.failed) {
+        $('run-prompt').hidden = false;
+        $('run-prompt').classList.add('run-failed');
+        $('run-result').hidden = false;
+        $('run-result').textContent =
+          Math.floor(state.distance) +
+          ' m / ' +
+          state.catches +
+          ' catches / box ' +
+          state.condition +
+          '%';
+        panel.querySelector('.run-prompt h2').textContent = state.failure;
+        $('run-resume').hidden = true;
+        $('run-retry').hidden = false;
+        $('run-pause').hidden = true;
+      }
       const message = roadGuidance(state);
-      $('run-hook').classList.toggle('tow-ready', !state.towed && !$('run-hook').disabled);
+      $('run-hook').classList.toggle(
+        'tow-ready',
+        !state.towed && state.targetId >= 0 && !$('run-hook').disabled
+      );
       if ($('run-message').textContent !== message) $('run-message').textContent = message;
     }
   };

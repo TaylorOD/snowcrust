@@ -58,6 +58,12 @@ export function createDeliverySession({
     if (value) audio.quiet();
   }
   const controls = createDeliveryControls(host, {
+    retry: (assisted) => {
+      run = createDeliveryRun({ assisted });
+      controls.show((practice ? 'practice / ' : '') + destinationFor(ticket.customer).name);
+      audio.reset();
+      pause(false);
+    },
     action: (name) => run?.action(name),
     pause: () => pause(true),
     resume: (assisted) => {
@@ -166,6 +172,10 @@ export function createDeliverySession({
       if (!run) return;
       transition += dt;
       run.update(dt);
+      if (run.state.failed) {
+        ticket.pause(true);
+        audio.quiet();
+      }
       audio.frame(run.state);
       arrival.approach(run.state.distance);
       road.frame(run.state, reduced, reduced ? 1 : Math.min(transition / 0.8, 1));

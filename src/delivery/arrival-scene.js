@@ -1,3 +1,4 @@
+import { routeLength } from './route.js';
 import * as THREE from '../../vendor/three.module.js';
 import { createGeometry } from '../scene/geometry.js';
 import { createArrivalSet } from './arrival-set.js';
@@ -94,8 +95,8 @@ export function createArrivalScene(scene, camera, riderModel) {
       rider.visible = board.visible = parcel.visible = customer.visible = false;
     },
     approach(distance) {
-      root.visible = distance > 455;
-      root.position.z = -1 - (560 - distance);
+      root.visible = distance > routeLength - 105;
+      root.position.z = -1 - (routeLength - distance);
     },
     show(pizza, result, address, caller, carried = null) {
       cameraStart.copy(camera.position);

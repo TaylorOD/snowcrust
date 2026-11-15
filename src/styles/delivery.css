@@ -352,3 +352,14 @@ body[data-mode='arriving'] main {
   width: fit-content;
   max-width: calc(100% - 24px);
 }
+
+.run-failed p:not(#run-result) {
+  display: none;
+}
+.run-failed {
+  top: 30%;
+}
+#run-speed {
+  color: #a9ebee;
+  font-weight: bold;
+}
