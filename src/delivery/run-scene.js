@@ -1,8 +1,11 @@
 import * as THREE from '../../vendor/three.module.js';
 import { hazards, laneWidth, routeLength } from './route.js';
+import { towCars as traffic, towPose } from './tow-traffic.js';
 
 // The road moves beneath a stationary rider. All objects are allocated once.
 export function createRunScene(scene, camera, models) {
+  const originalFog = scene.fog.clone();
+  const originalFar = camera.far;
   const root = new THREE.Group();
   root.visible = false;
   scene.add(root);
@@ -33,16 +36,20 @@ export function createRunScene(scene, camera, models) {
     canvas.width = 768;
     canvas.height = 128;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#101b28';
-    ctx.fillRect(0, 0, 768, 128);
-    ctx.strokeStyle = '#569cd6';
-    ctx.lineWidth = 7;
-    ctx.strokeRect(4, 4, 760, 120);
-    ctx.fillStyle = '#f1c17b';
-    ctx.font = 'bold 44px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(text, 384, 79, 730);
     const texture = new THREE.CanvasTexture(canvas);
+    function write(text) {
+      ctx.fillStyle = '#101b28';
+      ctx.fillRect(0, 0, 768, 128);
+      ctx.strokeStyle = '#569cd6';
+      ctx.lineWidth = 7;
+      ctx.strokeRect(4, 4, 760, 120);
+      ctx.fillStyle = '#f1c17b';
+      ctx.font = 'bold 44px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(text, 384, 79, 730);
+      texture.needsUpdate = true;
+    }
+    write(text);
     texture.colorSpace = THREE.SRGBColorSpace;
     const mesh = new THREE.Mesh(
       new THREE.PlaneGeometry(w, w / 6),
@@ -50,6 +57,7 @@ export function createRunScene(scene, camera, models) {
     );
     mesh.position.set(x, y, z);
     root.add(mesh);
+    mesh.userData.write = write;
     return mesh;
   }
   box(0, -0.36, -60, 12, 0.3, 160, '#18232e');
@@ -71,23 +79,45 @@ export function createRunScene(scene, camera, models) {
     box(-side * 3.55, 0.8, 0, 0.05, 2, 3.5, '#485b68', group);
     for (let rib = 0; rib < 10; rib++)
       box(-side * 3.59, rib * 0.2, 0, 0.05, 0.045, 3.5, '#17232e', group);
+    if (i % 3 === 0) {
+      box(-side * 4.4, 2.7, 4, 0.12, 5.5, 0.12, '#718b99', group);
+      box(-side * 4.4, 5.4, 4, 0.7, 0.12, 1.1, '#b6e4ea', group, true);
+    }
+    box(-side * 3.6, 2.3, 0, 0.04, 0.3, 1.3, '#c39c60', group, true);
     blocks.push(group);
   }
   const rider = models.rider;
   rider.position.set(0, 0, 3);
   rider.rotation.y = Math.PI / 2;
   root.add(rider);
-  const body = rider.children[1];
+  const body = rider.getObjectByName('body');
+  const board = rider.getObjectByName('board');
+  const wheels = [];
+  board.traverse((object) => {
+    if (object.name === 'board-wheel') wheels.push(object);
+  });
   const parcel = models.parcel;
   parcel.position.set(-0.35, 1.2, 2.5);
   parcel.rotation.set(0, Math.PI / 2, 0);
   root.add(parcel);
   const towCars = [];
-  for (let i = 0; i < 3; i++) {
-    const car = models.cars[i].clone(true);
+  for (let i = 0; i < traffic.length; i++) {
+    const car = models.cars[i % models.cars.length].clone(true);
     car.rotation.set(0, Math.PI / 2, 0);
     car.position.set((i - 1) * laneWidth, 0, -6);
     root.add(car);
+    const indicator = box(
+      -1.9,
+      0.65,
+      traffic[i].exit * 0.7,
+      0.14,
+      0.14,
+      0.14,
+      '#ffbc59',
+      car,
+      true
+    );
+    car.userData.indicator = indicator;
     towCars.push(car);
   }
   const obstacles = hazards.map((hazard, i) => {
@@ -119,7 +149,7 @@ export function createRunScene(scene, camera, models) {
     new THREE.MeshBasicMaterial({ color: '#8ab575' })
   );
   root.add(target);
-  const destination = sign('U-Stor-It / DELIVERY', 0, 4, -80, 9);
+  const destination = sign('DELIVERY', 0, 4, -80, 9);
   const billboard = sign('RadiKS / KOURIER ROUTE', -7, 6, -28, 7);
   const aim = new THREE.Vector3(),
     position = new THREE.Vector3();
@@ -130,16 +160,28 @@ export function createRunScene(scene, camera, models) {
     box,
     sign,
     material,
-    show() {
+    show(address) {
+      destination.userData.write(address.name + ' / ' + address.address);
       root.visible = true;
+      scene.fog.near = 50;
+      scene.fog.far = 105;
+      camera.far = 140;
     },
     hide() {
       root.visible = false;
+      scene.fog.near = originalFog.near;
+      scene.fog.far = originalFog.far;
+      camera.far = originalFar;
     },
     frame(state, reduced, blend = 1) {
       root.visible = true;
       rider.position.set(state.x * laneWidth, state.height, 3);
-      body.scale.y = state.crouch ? 0.65 : 1;
+      const recovery = state.protection > 0.8;
+      body.scale.y = state.crouch || recovery ? 0.65 : 1;
+      board.rotation.x = reduced ? 0 : (state.lane - state.x) * 0.12;
+      wheels.forEach((wheel) => {
+        wheel.rotation.z = -state.distance / 0.23;
+      });
       rider.rotation.z = reduced ? 0 : (state.lane - state.x) * -0.1;
       parcel.position.set(
         state.x * laneWidth - 0.35,
@@ -158,15 +200,21 @@ export function createRunScene(scene, camera, models) {
         object.visible = object.position.z > -65 && object.position.z < 8;
       });
       towCars.forEach((car, i) => {
-        car.position.z = -7 - Math.abs(i - 1 - state.lane) * 9;
-        car.visible = state.distance < routeLength - 35;
+        const pose = towPose(traffic[i], state.distance);
+        car.position.set(pose.x, 0, pose.z);
+        car.rotation.y = pose.yaw;
+        car.visible = pose.visible;
+        car.userData.indicator.visible =
+          pose.signal && (reduced || Math.floor(state.elapsed * 3) % 2 === 0);
       });
-      target.position.set(state.lane * laneWidth, 0.65, -4.7);
-      target.visible = state.distance < routeLength - 35 && !state.towed;
-      cable.visible = state.towed;
+      const selected = state.towed ? state.towId : state.targetId;
+      const car = selected >= 0 ? towCars[selected] : null;
+      target.visible = Boolean(car) && !state.towed;
+      if (car) target.position.set(car.position.x, 0.65, car.position.z + 2.2);
+      cable.visible = state.towed && Boolean(car);
       const points = cableGeometry.attributes.position;
       points.setXYZ(0, state.x * laneWidth, 1.1 + state.height, 2.4);
-      points.setXYZ(1, state.lane * laneWidth, 0.65, -4.8);
+      if (car) points.setXYZ(1, car.position.x, 0.65, car.position.z + 2.2);
       points.needsUpdate = true;
       cableGeometry.computeBoundingSphere();
       destination.position.z = 3 - (routeLength - state.distance);

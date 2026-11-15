@@ -1,4 +1,5 @@
 import { hazards, routeLength } from './route.js';
+import { towCars, towPose, availableTow } from './tow-traffic.js';
 
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
@@ -15,6 +16,8 @@ export function createDeliveryRun({ assisted = false } = {}) {
     condition: 100,
     speed: 11,
     towed: true,
+    towId: 0,
+    targetId: 0,
     paused: false,
     arrived: false,
     jump: 0,
@@ -25,7 +28,6 @@ export function createDeliveryRun({ assisted = false } = {}) {
   };
   const passed = new Set();
   let accumulator = 0;
-  const towAvailable = () => state.distance < routeLength - 35;
   function action(name) {
     if (state.paused || state.arrived) return;
     if (name === 'left' || name === 'right') {
@@ -38,7 +40,13 @@ export function createDeliveryRun({ assisted = false } = {}) {
       state.towed = false;
       state.jump = 0.85;
     } else if (name === 'duck') state.duck = 0.8;
-    else if (name === 'hook' && towAvailable()) state.towed = !state.towed;
+    else if (name === 'hook') {
+      if (state.towed) state.towed = false;
+      else if (state.targetId >= 0 && !state.jump && Math.abs(state.x - state.lane) < 0.2) {
+        state.towed = true;
+        state.towId = state.targetId;
+      }
+    }
     state.message = state.towed
       ? 'tow attached / release before turning'
       : 'free skating / catch a tow';
@@ -54,7 +62,15 @@ export function createDeliveryRun({ assisted = false } = {}) {
     state.speed = state.protection > 0.8 ? 5 : state.towed ? 14 : 9;
     const before = state.distance;
     state.distance = Math.min(routeLength, before + state.speed * dt);
-    if (!towAvailable()) state.towed = false;
+    state.targetId = availableTow(state.distance, state.lane);
+    if (state.towed) {
+      const tow = towPose(towCars[state.towId], state.distance);
+      if (!tow.reachable) {
+        state.towed = false;
+        state.protection = Math.max(state.protection, 1.1);
+        state.message = 'wrong exit / safety release / find another tow';
+      } else if (tow.signal) state.message = 'car taking the exit / release now';
+    }
     for (const hazard of hazards) {
       if (passed.has(hazard.id) || hazard.distance > state.distance + 1.5) continue;
       passed.add(hazard.id);
@@ -70,6 +86,7 @@ export function createDeliveryRun({ assisted = false } = {}) {
         state.hits++;
         state.protection = 1.5;
         state.towed = false;
+        if (hazard.type === 'van') state.lane = hazard.lane === -1 ? 0 : -1;
         state.message = 'cargo impact / keep moving';
       }
     }

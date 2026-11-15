@@ -88,7 +88,10 @@ export function createDeliveryControls(host, { action, pause, resume }) {
       $('run-condition').textContent = 'box ' + state.condition + '%';
       $('run-clock').textContent = clock;
       $('run-hook').textContent = state.towed ? 'release tow' : 'catch tow';
-      $('run-hook').disabled = state.distance >= 525;
+      $('run-hook').disabled =
+        !state.towed &&
+        (state.targetId < 0 || state.jump > 0 || Math.abs(state.x - state.lane) >= 0.2);
+      if (!state.towed && state.targetId < 0) $('run-hook').textContent = 'no tow in reach';
       if ($('run-message').textContent !== state.message)
         $('run-message').textContent = state.message;
     }
