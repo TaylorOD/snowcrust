@@ -28,9 +28,19 @@ delivery-session.js owns the playable road and ending. it coordinates input, sou
 
 run-model.js is the pure simulation. it advances in steps of 1/120 second, clamps a frame to 0.25 seconds and applies each hazard once. route.js owns lane width, route length, hazard spacing and customer addresses. keep at least one reachable safe path.
 
-tow-traffic.js owns each car's approach, reachable bumper window and signaled exit. the model and run-scene.js read the same positions. do not invent a second traffic timeline in the renderer.
+tow-traffic.js advances independent world positions and speeds. following cars leave room for vehicles and the rider. merges wait for a gap. the renderer reads those same positions through towPose. do not invent another traffic timeline in the renderer.
+
+traffic-contact.js resolves the rider's proposed movement against cars before it reaches the renderer. a side contact rejects the unsafe sideways step. rear contact matches the car ahead. neither moves the rider backwards or into another lane. run-model.js applies damage and remembers the contact until the car clears.
+
+steering while attached changes the lean offset. another outward input releases the line. jump and duck preserve the attachment. cars signal before their exit and the automatic release happens before the turn. the first coupe fits under the service beam. assisted play ducks automatically.
+
+skating-motion.js poses the existing joints. crouching changes the knees, torso and head rather than scaling the whole rider. the push foot reaches the road beside the board. the tow cable uses the launcher tip and rear bumper in world space.
+
+street-details.js owns the fixed landmarks. repeated box details are grouped by material into instanced meshes. keep overhead signs out of the chase camera once the rider passes them.
 
 run-scene.js reuses the original rider and car families. the road moves around a rider near the camera. meshes are allocated once. the longer road fog range is restored when the road hides.
+
+the last twenty metres release the tow and ease into the doorstep position. through traffic turns left before the forecourt. arrival-scene.js previews the same doorstep along the road, then keeps its final position during the handoff. the carried box position and camera rotation cross that transition too. the road stays behind the parked rider.
 
 arrival-set.js builds the physical doorsteps. arrival-scene.js handles parking, the carry, box transfer and camera. delivered-pizza.js clones the actual pizza and changes only slice transforms. cloned meshes share kitchen geometry and materials. removing them must not dispose those shared resources.
 
@@ -46,7 +56,9 @@ src/ui/order-ticket.js renders the caller, counts, timer and receipt. it exclude
 
 practice uses the same pizza and authored route with the elapsed time recorded at the start of skating. its condition and clock belong to the practice run. the original receipt remains unchanged. replay handoff reads that saved receipt directly.
 
-src/ui/delivery-controls.js handles keyboard, swipe and button input. gestures are captured only on the road surface. buttons and checkbox labels must not be captured as swipes. changing tabs pauses the run. order-view.js updates the controls and delivery steps. pizza-input.js handles turning and topping placement.
+road-guidance.js selects one useful cue. impact and exit warnings take priority. the reachable bumper and catch button share the same target state. reduced motion keeps the marker still.
+
+src/ui/delivery-controls.js handles keyboard, swipe and button input. gestures are captured only on the road surface. buttons and checkbox labels must not be captured as swipes. changing tabs pauses the run. rotating the viewport keeps the HUD in view. reset moves beside the handoff button during arrival and returns to its original location afterward. order-view.js updates the controls and delivery steps. pizza-input.js handles turning and topping placement.
 
 src/order/recipe.js validates old recipe links. a valid link replaces the pizza and resets its position. a broken link leaves the current order alone.
 
