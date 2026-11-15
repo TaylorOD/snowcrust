@@ -1,5 +1,7 @@
 # delivery review
 
+this is the earlier review, kept as history. its speed, starting tow and exit failure descriptions are superseded by the [current spec](DELIVERY_SPEC.md) and [interaction audit](INTERACTION_AUDIT.md).
+
 this pass fixes the part that was not working. the road needs player input, traffic gives you a reason to catch a tow, and a missed action can end the delivery.
 
 ## what changed
