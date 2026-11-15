@@ -3,16 +3,21 @@ import { hazards, laneWidth } from './route.js';
 // Cars advance in world metres independently of the rider. Relative positions
 // are derived here so catching a car never reverses its travel.
 export const towCars = [
-  { start: 10, speed: 14, lane: 0, lowProfile: true, exit: { distance: 430, side: 1 } },
-  { start: -28, speed: 16, lane: -1 },
-  { start: 35, speed: 11, lane: 1 },
-  { start: 65, speed: 12, lane: -1 },
-  { start: -100, speed: 15, lane: 1 },
-  { start: 92, speed: 14, lane: 0 },
-  { start: -65, speed: 13, lane: 0 },
-  { start: 150, speed: 8, lane: 1 },
-  { start: 200, speed: 7, lane: -1 },
-  { start: 240, speed: 8, lane: 0 }
+  { start: 12, speed: 17, lane: 0, lowProfile: true, exit: { distance: 430, side: 1 } },
+  { start: -25, speed: 19, lane: -1 },
+  { start: 45, speed: 15, lane: 1 },
+  { start: 85, speed: 18, lane: -1 },
+  { start: -100, speed: 20, lane: 1 },
+  { start: 125, speed: 17, lane: 0 },
+  { start: -95, speed: 17, lane: 0 },
+  { start: 170, speed: 15, lane: 1 },
+  { start: -180, speed: 19, lane: -1 },
+  { start: 210, speed: 18, lane: -1 },
+  { start: -235, speed: 20, lane: 1 },
+  { start: -210, speed: 17, lane: 0 },
+  { start: -310, speed: 19, lane: -1 },
+  { start: -355, speed: 20, lane: 1 },
+  { start: -340, speed: 17, lane: 0 }
 ];
 // Choose an adjacent clear lane before each obstruction. The lane change
 // starts early enough that both the car and its trailing rider clear it.
@@ -51,7 +56,7 @@ export function trafficLane(car, distance) {
 export function createTraffic() {
   return towCars.map((car) => ({
     ...car,
-    exit: car.exit ?? { distance: 510, side: -1 },
+    exit: car.exit ?? { distance: 910, side: -1 },
     distance: car.start,
     x: trafficLane(car, car.start).x,
     velocity: car.speed,
@@ -103,7 +108,7 @@ export function towPose(car, state) {
     distance: forward,
     gap,
     visible: gap > -18 && gap < 110,
-    reachable: gap >= 7 && gap <= 24 && (!car.exit || car.distance < car.exit.distance - 12),
+    reachable: gap >= 6 && gap <= 30 && (!car.exit || car.distance < car.exit.distance - 62),
     signal:
       (car.exit && car.distance >= car.exit.distance - 56) ||
       Math.abs(trafficLane(car, car.distance + 20).x - car.x) > 0.15,
@@ -124,7 +129,7 @@ export function availableTow(state) {
         other.distance > state.distance &&
         other.distance < car.distance
     );
-    if (!blocked && Math.abs(car.x - state.x) < 0.2 && pose.reachable && pose.gap < gap) {
+    if (!blocked && Math.abs(car.x - state.x) < 0.65 && pose.reachable && pose.gap < gap) {
       nearest = i;
       gap = pose.gap;
     }

@@ -1,4 +1,5 @@
 import * as THREE from '../../vendor/three.module.js';
+import { routeLength } from './route.js';
 import { freightExit } from './tow-traffic.js';
 
 // Landmarks have fixed addresses along the route. They explain the road's
@@ -39,7 +40,7 @@ export function createStreetDetails(root, { box, sign, batch }) {
   for (const z of [-1, 0, 1]) box(-6.6, 1.1, z, 0.05, 0.45, 0.5, '#86b7c4', utilities, true);
   label(utilities, 'SERVICE CREW / KEEP CLEAR', -6, 2.4, 5);
 
-  const boundary = place(380);
+  const boundary = place(650);
   boundary.userData.hideAfterPassing = true;
   for (const x of [-6.3, 6.3]) box(x, 2.6, 0, 0.35, 5.2, 0.35, '#77909c', boundary);
   box(0, 5.2, 0, 13, 0.3, 0.4, '#425f71', boundary);
@@ -49,7 +50,7 @@ export function createStreetDetails(root, { box, sign, batch }) {
 
   const exitPost = place(freightExit.distance - 10);
   box(6, 1.7, 0, 0.15, 3.4, 0.15, '#718b99', exitPost);
-  const neighborhood = place(505);
+  const neighborhood = place(routeLength - 55);
   label(neighborhood, 'DELIVERY ACCESS / SLOW TRAFFIC', 0, 4, 9);
   for (const x of [-6, 6]) {
     box(x, 2, 0, 0.12, 4, 0.12, '#718b99', neighborhood);

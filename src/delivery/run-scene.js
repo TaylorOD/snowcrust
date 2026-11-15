@@ -1,7 +1,7 @@
 import { createStreetDetails } from './street-details.js';
 import { createSkatingMotion } from './skating-motion.js';
 import * as THREE from '../../vendor/three.module.js';
-import { hazards, laneWidth } from './route.js';
+import { hazards, laneWidth, routeLength } from './route.js';
 import { towCars as traffic, towPose, freightExit } from './tow-traffic.js';
 
 // The road moves beneath a stationary rider. All objects are allocated once.
@@ -242,8 +242,8 @@ export function createRunScene(scene, camera, models) {
         b.position.z = 16 - ((Math.floor(i / 2) * 16 - (state.distance % 16) + 128) % 128);
         const world = state.distance + 3 - b.position.z;
         b.visible =
-          world < 540 &&
-          !(b.position.x < 0 && world > 490) &&
+          world < routeLength - 20 &&
+          !(b.position.x < 0 && world > routeLength - 70) &&
           !(
             b.position.x > 0 &&
             world > freightExit.distance - 15 &&
@@ -267,29 +267,31 @@ export function createRunScene(scene, camera, models) {
         car.userData.indicator.visible =
           pose.signal && (reduced || Math.floor(state.elapsed * 3) % 2 === 0);
       });
-      const selected = state.towed ? state.towId : state.targetId;
+      const selected = state.towed ? state.towId : state.hookFlight ? state.hookId : state.targetId;
       const car = selected >= 0 ? towCars[selected] : null;
       target.visible = Boolean(car) && !state.towed;
       if (car) target.position.set(car.position.x, 0.65, car.position.z + 2.2);
       target.scale.setScalar(reduced ? 1 : 1 + Math.sin(state.elapsed * 4) * 0.12);
-      cable.visible = state.towed && Boolean(car);
+      cable.visible = (state.towed || state.hookFlight > 0) && Boolean(car);
       const points = cableGeometry.attributes.position;
       skating.launcher.localToWorld(hand.set(0.2, 0, 0));
       points.setXYZ(0, hand.x, hand.y, hand.z);
       if (car) {
         car.updateMatrixWorld(true);
         car.localToWorld(rear.set(-2.17, 0.65, 0));
+        if (!state.towed) rear.lerpVectors(hand, rear, 1 - state.hookFlight / 0.24);
         points.setXYZ(1, rear.x, rear.y, rear.z);
       }
       points.needsUpdate = true;
       cableGeometry.computeBoundingSphere();
-      lastJunction.position.z = 3 - (530 - state.distance);
+      lastJunction.position.z = 3 - (routeLength - 30 - state.distance);
       billboard.position.z = -30 + (state.distance % 90);
-      billboard.visible = state.distance < 500;
-      position.set(state.x * 0.35, 5.5, 13);
-      camera.fov = camera.aspect < 0.8 ? 62 : 52;
+      billboard.visible = state.distance < routeLength - 60;
+      position.set(state.x * 0.4, 3.6, 10.5);
+      camera.fov =
+        (camera.aspect < 0.8 ? 64 : 57) + (reduced ? 0 : Math.min(10, state.speed * 0.5));
       camera.updateProjectionMatrix();
-      aim.set(state.x * 0.2, 0, -12);
+      aim.set(state.x * 0.25, 1.2, -24);
       camera.position.lerp(position, blend);
       camera.lookAt(aim);
     }
