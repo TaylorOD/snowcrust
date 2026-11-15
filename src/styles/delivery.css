@@ -107,3 +107,45 @@ body[data-mode='running'] .stage-top {
     gap: 9px;
   }
 }
+
+.handoff-controls {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 6;
+  padding: 12px;
+  background: #08131df0;
+  border: 1px solid #569cd6;
+  font-size: 12px;
+}
+.handoff-controls[hidden] {
+  display: none;
+}
+.handoff-controls p {
+  margin: 0 0 8px;
+}
+.handoff-controls button {
+  padding: 12px 20px;
+  min-height: 44px;
+  background: #244b36;
+  color: white;
+  border: 1px solid #8ab575;
+  font: inherit;
+  cursor: pointer;
+}
+#customer-reaction {
+  color: #e9ba71;
+  font-size: 14px;
+}
+body[data-mode='arriving'] .scene-caption,
+body[data-mode='dispatched'] .scene-caption {
+  display: none;
+}
+@media (max-width: 740px) {
+  body[data-mode='arriving'] #scene,
+  body[data-mode='dispatched'] #scene {
+    height: min(680px, 85dvh);
+    min-height: 440px;
+  }
+}

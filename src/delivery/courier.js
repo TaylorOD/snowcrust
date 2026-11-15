@@ -57,8 +57,9 @@ export function createCourier(scene) {
     parent.add(m);
     return m;
   }
-  function joint(parent, width, mat) {
+  function joint(parent, width, mat, name) {
     const m = new THREE.Mesh(unitLimb, mat);
+    m.name = name;
     m.castShadow = true;
     parent.add(m);
     return (a, b) => {
@@ -245,6 +246,7 @@ export function createCourier(scene) {
   root.add(rider);
   const board = new THREE.Group();
   rider.add(board);
+  board.name = 'board';
   box(board, 0, 0.24, 0, 1.55, 0.1, 0.48, dark);
   for (const x of [-0.73, 0.73])
     box(board, x, 0.28, 0, 0.2, 0.07, 0.48, jacket).rotation.z = x > 0 ? 0.3 : -0.3;
@@ -262,8 +264,10 @@ export function createCourier(scene) {
 
   const body = new THREE.Group();
   rider.add(body);
+  body.name = 'body';
   const torso = new THREE.Group();
   body.add(torso);
+  torso.name = 'torso';
   box(torso, 0, 0, 0, 0.42, 0.64, 0.48, jacket);
   box(torso, 0.215, 0, 0, 0.025, 0.56, 0.035, alloy);
   for (const z of [-0.27, 0.27]) {
@@ -282,6 +286,7 @@ export function createCourier(scene) {
   box(torso, 0.25, -0.1, -0.08, 0.035, 0.1, 0.09, alloy);
   const head = new THREE.Group();
   body.add(head);
+  head.name = 'head';
   ball(head, 0, 0, 0, 0.2, 0.24, 0.19, skin);
   ball(head, 0.18, -0.015, 0, 0.07, 0.055, 0.055, skin);
   ball(head, -0.035, 0.12, 0, 0.235, 0.18, 0.23, trim);
@@ -296,32 +301,41 @@ export function createCourier(scene) {
     ball(ponytail, -0.2 - i * 0.075, -0.01 - i * 0.03, 0.04, 0.1 - i * 0.012, 0.075, 0.075, hair);
   ball(head, -0.22, 0.01, 0.04, 0.07, 0.07, 0.07, bagMat);
   const legs = [
-    joint(body, 0.12, pants),
-    joint(body, 0.105, pants),
-    joint(body, 0.12, pants),
-    joint(body, 0.105, pants)
+    joint(body, 0.12, pants, 'back-thigh'),
+    joint(body, 0.105, pants, 'back-shin'),
+    joint(body, 0.12, pants, 'front-thigh'),
+    joint(body, 0.105, pants, 'front-shin')
   ];
   const arms = [
-    joint(body, 0.085, jacket),
-    joint(body, 0.07, skin),
-    joint(body, 0.085, jacket),
-    joint(body, 0.07, skin)
+    joint(body, 0.085, jacket, 'left-upper-arm'),
+    joint(body, 0.07, skin, 'left-forearm'),
+    joint(body, 0.085, jacket, 'right-upper-arm'),
+    joint(body, 0.07, skin, 'right-forearm')
   ];
   const knees = [
     ball(body, 0, 0, 0, 0.15, 0.12, 0.14, steel),
     ball(body, 0, 0, 0, 0.15, 0.12, 0.14, steel)
   ];
+  knees[0].name = 'back-knee';
+  knees[1].name = 'front-knee';
   const elbows = [
     ball(body, 0, 0, 0, 0.095, 0.095, 0.095, dark),
     ball(body, 0, 0, 0, 0.095, 0.095, 0.095, dark)
   ];
+  elbows[0].name = 'left-elbow';
+  elbows[1].name = 'right-elbow';
   for (const x of [-0.42, 0.45]) {
-    box(body, x, 0.37, 0, 0.37, 0.16, 0.25, dark);
-    box(body, x, 0.3, 0, 0.39, 0.035, 0.27, alloy);
-    box(body, x + 0.05, 0.43, 0, 0.07, 0.025, 0.25, trim);
+    const shoe = new THREE.Group();
+    shoe.name = x < 0 ? 'back-shoe' : 'front-shoe';
+    shoe.position.x = x;
+    body.add(shoe);
+    box(shoe, 0, 0.37, 0, 0.37, 0.16, 0.25, dark);
+    box(shoe, 0, 0.3, 0, 0.39, 0.035, 0.27, alloy);
+    box(shoe, 0.05, 0.43, 0, 0.07, 0.025, 0.25, trim);
   }
   const launcher = new THREE.Group();
   body.add(launcher);
+  launcher.name = 'launcher';
   box(launcher, 0, 0, 0, 0.35, 0.14, 0.16, steel);
   box(launcher, 0.19, 0, 0, 0.07, 0.08, 0.1, alloy);
   const reel = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.12, 16), trim);

@@ -1,3 +1,4 @@
+import { finishHandoff } from './finish-handoff.js';
 import { expect } from '@playwright/test';
 
 export async function checkCustomerOrder(page, baseUrl, name) {
@@ -35,6 +36,7 @@ export async function checkCustomerOrder(page, baseUrl, name) {
   await page.locator('#assisted-delivery').check();
   await page.locator('#dispatch').click();
   await page.clock.fastForward(5400);
+  await finishHandoff(page);
   await expect(page.locator('#order-score')).toHaveText(name === 'mobile' ? '90' : '100');
   await expect(page.locator('#order-receipt')).toBeVisible();
   await expect(page.locator('#receipt-time')).toContainText(
@@ -48,6 +50,7 @@ export async function checkCustomerOrder(page, baseUrl, name) {
   const time = await page.locator('#order-clock').textContent();
   await page.locator('#replay').click();
   await page.clock.fastForward(10000);
+  await finishHandoff(page);
   await expect(page.locator('#order-clock')).toHaveText(time);
   await expect(page.locator('#order-score')).toHaveText(name === 'mobile' ? '90' : '100');
   const caller = await page.locator('#caller-name').textContent();
