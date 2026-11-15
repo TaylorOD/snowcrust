@@ -1,6 +1,7 @@
 import { createDeliveryRun } from './run-model.js';
 import { createRunScene } from './run-scene.js';
 import { createArrivalScene } from './arrival-scene.js';
+import { createDeliveryAudio } from './delivery-audio.js';
 import { destinationFor } from './route.js';
 import { createDeliveryControls } from '../ui/delivery-controls.js';
 
@@ -19,6 +20,7 @@ export function createDeliverySession({
 }) {
   host.tabIndex = -1;
   let tutorialSeen = false;
+  const audio = createDeliveryAudio(host);
   const models = courier.models();
   const arrival = createArrivalScene(scene, camera, models.rider);
   const road = createRunScene(scene, camera, models);
@@ -36,6 +38,7 @@ export function createDeliverySession({
   const button = handoff.querySelector('button');
   button.onclick = () => {
     if (!ending || ending.handedAt !== null) return;
+    audio.handoff();
     ending.handedAt = performance.now();
     button.hidden = true;
   };
@@ -44,6 +47,7 @@ export function createDeliverySession({
     run.setPaused(value);
     ticket.pause(value);
     controls.paused(value, first);
+    if (value) audio.quiet();
   }
   const controls = createDeliveryControls(host, {
     action: (name) => run?.action(name),
@@ -54,6 +58,7 @@ export function createDeliverySession({
     }
   });
   function arrive(result) {
+    audio.arrival();
     run = null;
     controls.hide();
     road.hide();
@@ -79,6 +84,7 @@ export function createDeliverySession({
   return {
     arrive,
     start(options = {}) {
+      audio.reset();
       practice = Boolean(options.practice);
       dispatchElapsed = options.elapsed ?? 0;
       run = createDeliveryRun();
@@ -96,6 +102,7 @@ export function createDeliverySession({
       host.scrollIntoView({ block: 'center', behavior: 'instant' });
     },
     reset() {
+      audio.reset();
       controls.hide();
       road.hide();
       arrival.hide();
@@ -136,6 +143,7 @@ export function createDeliverySession({
       if (!run) return;
       transition += dt;
       run.update(dt);
+      audio.frame(run.state);
       road.frame(run.state, reduced, reduced ? 1 : Math.min(transition / 0.8, 1));
       const remaining = 120 - dispatchElapsed - run.state.elapsed;
       const practiceClock = Math.abs(Math.ceil(remaining)) + (remaining < 0 ? 's late' : 's left');

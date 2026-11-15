@@ -26,6 +26,7 @@ try {
   await import('../tests/browser/browser-check.js');
   await import('../tests/browser/delivery-check.js');
   await import('../tests/browser/arrival-check.js');
+  await import('../tests/browser/audio-check.js');
 } finally {
   server.kill();
 }
