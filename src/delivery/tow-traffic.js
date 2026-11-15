@@ -73,7 +73,10 @@ export function advanceTraffic(traffic, seconds, rider = null) {
       const crosses = Math.min(car.x, x) < ahead.x + 0.7 && Math.max(car.x, x) > ahead.x - 0.7;
       if (!crosses) continue;
       // Wait for a clear gap before merging beside another vehicle or rider.
-      if (Math.abs(ahead.distance - before) < 9 && Math.abs(car.x - ahead.x) >= 0.7) {
+      if (
+        Math.abs(ahead.distance - before) < 9 &&
+        Math.abs(x - ahead.x) < Math.abs(car.x - ahead.x)
+      ) {
         distance = before;
         break;
       }

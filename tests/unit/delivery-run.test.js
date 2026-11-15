@@ -242,3 +242,28 @@ test('through traffic turns away before the delivery forecourt', () => {
     assert.ok(pose.distance < 535);
   }
 });
+
+test('rapid steering and merging traffic keep a clear rider footprint', () => {
+  for (let seed = 1; seed <= 30; seed++) {
+    const run = createDeliveryRun();
+    let random = seed;
+    for (let step = 0; step < 120 * 100 && !run.state.arrived; step++) {
+      if (step % 45 === 0) {
+        random = (random * 1664525 + 1013904223) >>> 0;
+        run.action(['left', 'right', 'jump', 'duck', 'hook'][random % 5]);
+      }
+      const before = run.state.distance;
+      run.update(1 / 120);
+      assert.ok(run.state.distance >= before);
+      for (const car of run.state.traffic) {
+        if (Math.abs(car.x - run.state.x) < 0.55)
+          assert.ok(
+            Math.abs(car.distance - run.state.distance) > 3.5,
+            `seed ${seed}, step ${step}`
+          );
+      }
+    }
+    advance(run, 90);
+    assert.equal(run.state.arrived, true);
+  }
+});
