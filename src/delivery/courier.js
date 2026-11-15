@@ -461,7 +461,7 @@ export function createCourier(scene) {
     for (const wheel of boardWheels)
       wheel.rotation.z = -Math.hypot(pose.x + 3.9, pose.z - 7) / 0.23;
     const phase = t < 1.65 ? 'collect' : t < 3.75 ? 'approach' : t < 4.13 ? 'hook' : 'ride';
-    return { done: seconds >= deliveryDuration, phase };
+    return { done: seconds >= deliveryDuration, phase, x: pose.x };
   }
   return {
     // Clones share the original geometry and materials. Build them once for

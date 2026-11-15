@@ -40,7 +40,7 @@ test('one input moves exactly one lane, including rapid reversals', () => {
   assert.equal(run.state.x, 1);
 });
 test('hooking has travel time and supplies acceleration', () => {
-  const run = createDeliveryRun();
+  const run = createDeliveryRun({ startTowed: false });
   run.action('hook');
   assert.equal(run.state.towed, false);
   advance(run, 0.3);
@@ -53,7 +53,7 @@ test('hooking has travel time and supplies acceleration', () => {
   assert.equal(run.state.towed, true);
 });
 test('release preserves momentum and requires a separate input', () => {
-  const run = createDeliveryRun();
+  const run = createDeliveryRun({ startTowed: false });
   run.action('hook');
   advance(run, 2);
   const speed = run.state.speed;
@@ -63,7 +63,7 @@ test('release preserves momentum and requires a separate input', () => {
   assert.ok(run.state.speed > speed - 0.3);
 });
 test('a missed hook cannot attach to another lane or teleport the rider', () => {
-  const run = createDeliveryRun();
+  const run = createDeliveryRun({ startTowed: false });
   run.action('left');
   advance(run, 0.2);
   run.action('hook');
@@ -104,7 +104,7 @@ test('jump and duck each clear their own obstacle', () => {
     [76, 'jump'],
     [150, 'duck']
   ]) {
-    const run = createDeliveryRun();
+    const run = createDeliveryRun({ startTowed: false });
     run.state.distance = distance;
     run.state.traffic = [];
     run.action(action);
@@ -155,4 +155,12 @@ test('assisted mode remains an explicit accessible way to reach the same address
   advance(run, 180);
   assert.equal(run.state.arrived, true);
   assert.equal(run.state.condition, 100);
+});
+
+test('the playable road continues the opening tow at speed', () => {
+  const run = createDeliveryRun();
+  assert.equal(run.state.towed, true);
+  assert.equal(run.state.towId, 0);
+  assert.equal(run.state.catches, 1);
+  assert.ok(run.state.speed >= 17);
 });

@@ -7,7 +7,7 @@ const laneDuration = 0.18;
 
 // Fixed steps keep collisions and input identical at different display rates.
 // The player owns their lane even while attached. The tow only supplies speed.
-export function createDeliveryRun({ assisted = false } = {}) {
+export function createDeliveryRun({ assisted = false, startTowed = true } = {}) {
   const state = {
     assisted,
     traffic: createTraffic(),
@@ -19,8 +19,8 @@ export function createDeliveryRun({ assisted = false } = {}) {
     height: 0,
     crouch: false,
     condition: 100,
-    speed: 8,
-    towed: false,
+    speed: startTowed ? 17 : 8,
+    towed: startTowed,
     towId: 0,
     targetId: 0,
     paused: false,
@@ -38,9 +38,11 @@ export function createDeliveryRun({ assisted = false } = {}) {
     hookId: -1,
     messageTime: 3,
     towSeconds: 0,
-    catches: 0,
+    catches: startTowed ? 1 : 0,
     cleared: 0,
-    message: 'bumper ahead / space to fire the poon'
+    message: startTowed
+      ? 'poon locked / steer, jump and duck'
+      : 'bumper ahead / space to fire the poon'
   };
   const passed = new Set(),
     contacts = new Set(),
