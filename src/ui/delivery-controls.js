@@ -11,6 +11,7 @@ export function createDeliveryControls(host, { action, pause, resume }) {
     <div id="run-prompt" class="run-prompt">
       <h2>your delivery.</h2><p>three lanes. keep the box intact.</p>
       <p>← → steer · ↑ jump · ↓ duck<br>space to catch or release a tow</p>
+      <p>steer once to carve behind a car. steer again to leave the tow. jumping and ducking keep the line attached.</p>
       <p>on a phone, swipe or use the buttons below.</p>
       <label><input type="checkbox" id="run-assist"> slower road / no damage</label><br>
       <button id="run-resume">start skating</button>
@@ -24,9 +25,12 @@ export function createDeliveryControls(host, { action, pause, resume }) {
     </div><p id="run-message" role="status"></p>`;
   host.append(panel);
   const $ = (id) => panel.querySelector('#' + id);
-  panel
-    .querySelectorAll('[data-run]')
-    .forEach((button) => button.addEventListener('click', () => action(button.dataset.run)));
+  panel.querySelectorAll('[data-run]').forEach((button) =>
+    button.addEventListener('click', () => {
+      action(button.dataset.run);
+      host.focus({ preventScroll: true });
+    })
+  );
   $('run-pause').onclick = pause;
   $('run-resume').onclick = () => {
     const assisted = $('run-assist').checked;
