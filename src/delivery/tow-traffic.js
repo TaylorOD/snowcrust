@@ -1,33 +1,87 @@
-import { laneWidth } from './route.js';
+import { hazards, laneWidth } from './route.js';
 
-// Each car has a clear approach and a signed exit before the next obstacle.
-// Distance drives both the simulation and meshes, including paused frames.
+// Cars advance in world metres independently of the rider. Relative positions
+// are derived here so catching a car never reverses its travel.
 export const towCars = [
-  { start: 0, end: 65, lane: 0, exit: 1 },
-  { start: 130, end: 195, lane: -1, exit: -1 },
-  { start: 260, end: 310, lane: 0, exit: 1 },
-  { start: 350, end: 400, lane: 1, exit: 1 },
-  { start: 445, end: 515, lane: -1, exit: -1 }
+  { start: 10, speed: 14, lane: 0 },
+  { start: -28, speed: 16, lane: -1 },
+  { start: 55, speed: 11, lane: 1 },
+  { start: 115, speed: 12, lane: -1 },
+  { start: -100, speed: 15, lane: 1 }
 ];
-const clamp = (n) => Math.max(0, Math.min(1, n));
-const ease = (n) => {
-  const t = clamp(n);
-  return t * t * (3 - 2 * t);
-};
-
-export function towPose(car, distance) {
-  const approach = car.start === 0 ? 1 : ease((distance - car.start) / 15);
-  const turn = ease((distance - (car.end - 15)) / 15);
-  return {
-    visible: distance >= car.start && distance < car.end,
-    reachable: distance >= car.start + (car.start ? 15 : 0) && distance < car.end - 22,
-    signal: distance >= car.end - 42,
-    x: car.lane * laneWidth + turn * (car.exit * 7 - car.lane * laneWidth),
-    z: -7 - (1 - approach) * 48 - turn * 50,
-    yaw: Math.PI / 2 - car.exit * turn * 0.6
-  };
+// Choose an adjacent clear lane before each obstruction. The lane change
+// starts early enough that both the car and its trailing rider clear it.
+export function trafficLane(car, distance) {
+  let lane = car.lane;
+  let x = lane;
+  let turn = 0;
+  for (const hazard of hazards) {
+    if (hazard.lane !== lane) continue;
+    const next = lane === 0 ? (hazard.id % 2 ? -1 : 1) : 0;
+    const t = Math.max(0, Math.min(1, (distance - hazard.distance + 28) / 16));
+    if (!t) break;
+    x = lane + (next - lane) * t * t * (3 - 2 * t);
+    turn = ((next - lane) * 6 * t * (1 - t)) / 16;
+    if (t < 1) break;
+    lane = next;
+  }
+  return { x, turn };
 }
 
-export function availableTow(distance, lane) {
-  return towCars.findIndex((car) => car.lane === lane && towPose(car, distance).reachable);
+export function createTraffic() {
+  return towCars.map((car) => ({
+    ...car,
+    distance: car.start,
+    x: trafficLane(car, car.start).x,
+    velocity: car.speed,
+    yaw: Math.PI / 2
+  }));
+}
+
+// Update front to back. Following cars brake before occupied space, including
+// lane changes, instead of passing through another vehicle.
+export function advanceTraffic(traffic, seconds, rider = null) {
+  const ordered = [...traffic].sort((a, b) => b.distance - a.distance);
+  for (const car of ordered) {
+    const before = car.distance;
+    let distance = before + car.speed * seconds;
+    let x = trafficLane(car, distance).x;
+    const occupied = rider ? [...ordered, rider] : ordered;
+    for (const ahead of occupied) {
+      if (ahead === car || ahead.distance <= before) continue;
+      const crosses = Math.min(car.x, x) < ahead.x + 0.7 && Math.max(car.x, x) > ahead.x - 0.7;
+      if (crosses) distance = Math.min(distance, Math.max(before, ahead.distance - 9));
+    }
+    x = trafficLane(car, distance).x;
+    car.velocity = (distance - before) / seconds;
+    car.yaw = Math.PI / 2 - Math.atan2((x - car.x) * laneWidth, Math.max(0.001, distance - before));
+    car.distance = distance;
+    car.x = x;
+  }
+}
+
+export function towPose(car, state) {
+  const gap = car.distance - state.distance;
+  return {
+    distance: car.distance,
+    gap,
+    visible: gap > -18 && gap < 110,
+    reachable: gap >= 7 && gap <= 24,
+    signal: Math.abs(trafficLane(car, car.distance + 20).x - car.x) > 0.15,
+    x: car.x * laneWidth,
+    z: 3 - gap,
+    yaw: car.yaw
+  };
+}
+export function availableTow(state) {
+  let nearest = -1;
+  let gap = Infinity;
+  state.traffic.forEach((car, i) => {
+    const pose = towPose(car, state);
+    if (Math.abs(car.x - state.x) < 0.2 && pose.reachable && pose.gap < gap) {
+      nearest = i;
+      gap = pose.gap;
+    }
+  });
+  return nearest;
 }
