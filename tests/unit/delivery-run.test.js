@@ -218,3 +218,27 @@ test('a low coupe passes a beam that its rider must duck under', () => {
   assert.ok(run.state.hits > 0);
   assert.ok(run.state.condition < 100);
 });
+
+test('the last twenty metres coast into the doorstep position', () => {
+  const run = createDeliveryRun();
+  while (run.state.distance < 545) run.update(1 / 60);
+  assert.equal(run.state.approaching, true);
+  assert.equal(run.state.towed, false);
+  const lane = run.state.lane;
+  run.action('left');
+  assert.equal(run.state.lane, lane);
+  advance(run, 10);
+  assert.equal(run.state.arrived, true);
+  assert.ok(Math.abs(run.state.x * 3.4 - 2.1) < 0.01);
+  assert.equal(run.state.speed, 4);
+});
+
+test('through traffic turns away before the delivery forecourt', () => {
+  for (const car of createTraffic().slice(1)) {
+    car.distance = 550;
+    car.x = trafficLane(car, car.distance).x;
+    const pose = towPose(car, { distance: 540 });
+    assert.ok(pose.x < -15);
+    assert.ok(pose.distance < 535);
+  }
+});

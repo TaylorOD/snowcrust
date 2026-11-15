@@ -79,13 +79,32 @@ export function createArrivalScene(scene, camera, riderModel) {
     box(0.05, 0.08, 0.01, dark, dents, -0.4 + i * 0.2, 0.05, 0.75).rotation.z = 0.5;
   let displayedPizza = null,
     damage = 0;
+  let startFov = 52;
+  const startRotation = new THREE.Quaternion();
+  const endRotation = new THREE.Quaternion();
   const cameraStart = new THREE.Vector3(),
     cameraTarget = new THREE.Vector3();
+  const carryStart = new THREE.Vector3();
   const carry = new THREE.Vector3(),
     destination = new THREE.Vector3(0, 1.12, 0.8);
   return {
-    show(pizza, result, address, caller) {
+    preview(address, caller) {
+      doorstep.show(address, caller);
+      doorstep.frame(0);
+      rider.visible = board.visible = parcel.visible = customer.visible = false;
+    },
+    approach(distance) {
+      root.visible = distance > 455;
+      root.position.z = -1 - (560 - distance);
+    },
+    show(pizza, result, address, caller, carried = null) {
       cameraStart.copy(camera.position);
+      startRotation.copy(camera.quaternion);
+      startFov = camera.fov;
+      root.position.z = -1;
+      carryStart.copy(carried ?? new THREE.Vector3(1.05, 1.08, 3));
+      carryStart.z += 1;
+      rider.visible = board.visible = parcel.visible = customer.visible = true;
       root.visible = true;
       doorstep.show(address, caller);
       headset.visible = address.kind === 'motel';
@@ -143,7 +162,7 @@ export function createArrivalScene(scene, camera, riderModel) {
       }
       doorstep.frame(seconds);
       headset.rotation.x = handedSeconds === null ? 0 : -ease(handedSeconds / 1.2) * 1.2;
-      carry.set(1.05, 1.08, 4 - park * 2.2);
+      carry.set(1.05, 1.08, 1.8).lerp(carryStart, 1 - park);
       parcel.position.copy(carry).lerp(destination, transfer);
       parcel.rotation.set(0, (1 - transfer) * 0.2, 0);
       lid.rotation.x = handedSeconds === null ? 0 : -ease((handedSeconds - 1.6) / 1.6) * 1.85;
@@ -151,10 +170,14 @@ export function createArrivalScene(scene, camera, riderModel) {
         hand.position.y = 1.03 + transfer * 0.03;
       });
       const reveal = handedSeconds === null ? 0 : ease((handedSeconds - 1.5) / 2.5);
-      cameraTarget.set(4.5 - reveal * 2.4, 4.5 + reveal * 0.5, 9 - reveal * 4.2);
-      camera.fov = camera.aspect < 0.8 ? 58 : 42;
+      if (camera.aspect < 0.8) cameraTarget.set(3 - reveal, 5.5, 13 - reveal * 7);
+      else cameraTarget.set(4.5 - reveal * 2.4, 4.5 + reveal * 0.5, 8 - reveal * 4.2);
+      const cameraBlend = reduced ? 1 : ease(seconds / 1.5);
+      camera.fov = startFov + ((camera.aspect < 0.8 ? 58 : 42) - startFov) * cameraBlend;
       camera.position.lerpVectors(cameraStart, cameraTarget, reduced ? 1 : ease(seconds / 0.8));
-      camera.lookAt(0, 1.2, 0.3);
+      camera.lookAt(0, 1.2, -0.7);
+      endRotation.copy(camera.quaternion);
+      camera.quaternion.slerpQuaternions(startRotation, endRotation, cameraBlend);
       camera.updateProjectionMatrix();
     }
   };

@@ -51,6 +51,7 @@ export function trafficLane(car, distance) {
 export function createTraffic() {
   return towCars.map((car) => ({
     ...car,
+    exit: car.exit ?? { distance: 510, side: -1 },
     distance: car.start,
     x: trafficLane(car, car.start).x,
     velocity: car.speed,

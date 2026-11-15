@@ -1,7 +1,7 @@
 import { createStreetDetails } from './street-details.js';
 import { createSkatingMotion } from './skating-motion.js';
 import * as THREE from '../../vendor/three.module.js';
-import { hazards, laneWidth, routeLength } from './route.js';
+import { hazards, laneWidth } from './route.js';
 import { towCars as traffic, towPose, freightExit } from './tow-traffic.js';
 
 // The road moves beneath a stationary rider. All objects are allocated once.
@@ -189,7 +189,11 @@ export function createRunScene(scene, camera, models) {
     new THREE.MeshBasicMaterial({ color: '#8ab575' })
   );
   root.add(target);
-  const destination = sign('DELIVERY', 0, 4, -80, 9);
+  const lastJunction = new THREE.Group();
+  root.add(lastJunction);
+  box(-19, 0.01, 0, 26, 0.02, 36, '#18232e', lastJunction);
+  for (const x of [-8, -12, -16, -20, -24])
+    box(x, 0.025, 0, 2, 0.01, 0.12, '#8cb0bb', lastJunction);
   const billboard = sign('RadiKS / KOURIER ROUTE', -7, 6, -28, 7);
   const aim = new THREE.Vector3(),
     position = new THREE.Vector3();
@@ -200,12 +204,15 @@ export function createRunScene(scene, camera, models) {
     box,
     sign,
     material,
-    show(address) {
-      destination.userData.write(address.name + ' / ' + address.address);
+    show() {
+      rider.visible = parcel.visible = true;
       root.visible = true;
       scene.fog.near = 50;
       scene.fog.far = 105;
       camera.far = 140;
+    },
+    park() {
+      rider.visible = parcel.visible = cable.visible = target.visible = false;
     },
     hide() {
       root.visible = false;
@@ -234,11 +241,14 @@ export function createRunScene(scene, camera, models) {
       blocks.forEach((b, i) => {
         b.position.z = 16 - ((Math.floor(i / 2) * 16 - (state.distance % 16) + 128) % 128);
         const world = state.distance + 3 - b.position.z;
-        b.visible = !(
-          b.position.x > 0 &&
-          world > freightExit.distance - 15 &&
-          world < freightExit.distance + 50
-        );
+        b.visible =
+          world < 540 &&
+          !(b.position.x < 0 && world > 490) &&
+          !(
+            b.position.x > 0 &&
+            world > freightExit.distance - 15 &&
+            world < freightExit.distance + 50
+          );
       });
       exitRoad.position.z = 3 - (freightExit.distance - state.distance);
       exitSign.position.z = exitRoad.position.z + 10;
@@ -272,8 +282,9 @@ export function createRunScene(scene, camera, models) {
       }
       points.needsUpdate = true;
       cableGeometry.computeBoundingSphere();
-      destination.position.z = 3 - (routeLength - state.distance);
+      lastJunction.position.z = 3 - (530 - state.distance);
       billboard.position.z = -30 + (state.distance % 90);
+      billboard.visible = state.distance < 500;
       position.set(state.x * 0.35, 5.5, 13);
       camera.fov = camera.aspect < 0.8 ? 62 : 52;
       camera.updateProjectionMatrix();
