@@ -40,6 +40,7 @@ export function createStreetDetails(root, { box, sign, batch }) {
   label(utilities, 'SERVICE CREW / KEEP CLEAR', -6, 2.4, 5);
 
   const boundary = place(380);
+  boundary.userData.hideAfterPassing = true;
   for (const x of [-6.3, 6.3]) box(x, 2.6, 0, 0.35, 5.2, 0.35, '#77909c', boundary);
   box(0, 5.2, 0, 13, 0.3, 0.4, '#425f71', boundary);
   label(boundary, 'FRANCHISE BOUNDARY / KOURIERS THROUGH', 0, 4.7, 10);
@@ -60,7 +61,10 @@ export function createStreetDetails(root, { box, sign, batch }) {
     frame(distance) {
       landmarks.forEach(({ distance: at, group }) => {
         group.position.z = 3 - (at - distance);
-        group.visible = group.position.z < 30 && group.position.z > -110;
+        group.visible =
+          group.position.z < 30 &&
+          group.position.z > -110 &&
+          !(group.userData.hideAfterPassing && group.position.z >= 3);
         // The chase camera sits behind the rider. Passed signs must not fill it.
         group.userData.labels?.forEach((panel) => {
           panel.visible = group.position.z < -2;
