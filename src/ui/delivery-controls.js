@@ -86,6 +86,9 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
   return {
     show(address) {
       panel.hidden = false;
+      panel.querySelectorAll('[data-run]').forEach((button) => {
+        button.disabled = false;
+      });
       $('run-assist').checked = false;
       $('run-assist').disabled = false;
       $('run-address').textContent = address;
