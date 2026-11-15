@@ -40,7 +40,7 @@ ten cars move at their own speeds. the first tow lasts over twenty seconds if yo
 
 steer once to carve beside the car. steer back to centre the line. steer farther out to leave it. jumping and ducking keep the tow attached. the low coupe fits under a beam that you still need to duck under.
 
-a green marker and catch button show when a bumper is reachable. a turning car gives you at least three seconds to release. it takes an actual side street. the safety release keeps your momentum instead of snapping you to a stop.
+a green marker and catch button show when a bumper is reachable. the first car gives you at least three seconds of warning before releasing you. it takes an actual side street. the safety release keeps your momentum instead of snapping you to a stop.
 
 traffic contact damages the box once and slows you down. it does not throw you into another lane.
 

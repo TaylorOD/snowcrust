@@ -21,7 +21,7 @@ this pass keeps the pizza delivery and the existing art. the runner comparison i
 
 ## checks
 
-45 unit tests cover the order, pizza, delivery model, traffic, guidance and movement. the rapid input test runs thirty repeatable deliveries and checks traffic clearance and completion. lint and formatting are checked too.
+46 unit tests cover the order, pizza, delivery model, traffic, guidance and movement. the rapid input test runs thirty repeatable deliveries and checks traffic clearance and completion. a stopped tow test prevents backwards travel. lint and formatting are checked too.
 
 the browser suite covers desktop and phone layouts, keyboard and touch controls, pause, reset, replay, practice, all six customers, bitten pizza reactions, frozen receipts and GPU buffer reuse. the rotation check verifies the HUD stays on screen.
 
