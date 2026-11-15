@@ -24,7 +24,7 @@ retry delivery is practice. it starts the same road with your pizza and the time
 
 ## on the road
 
-one authored 960 metre route. three lanes. moving traffic, parked cars, road work and overhead frames. the street passes dispatch frontage, an overpass and a franchise boundary. a clean run takes about 67 seconds. there is always a clear path. the road has its own 90 second limit. missing the franchise guarantee lowers your delivery result but does not end the road.
+one authored 960 metre route. three lanes. moving traffic, parked cars, road work and overhead frames. the street passes dispatch frontage, an overpass and a franchise boundary. a clean scripted run takes about 54 seconds. there is always a clear path. the road has its own 90 second limit. missing the franchise guarantee lowers your delivery result but does not end the road.
 
 | action               | keyboard          | phone               |
 | -------------------- | ----------------- | ------------------- |
@@ -36,13 +36,13 @@ one authored 960 metre route. three lanes. moving traffic, parked cars, road wor
 
 touch buttons work too. the controls stay inside the play area.
 
-fifteen cars move at their own speeds. you start skating and fire the poon yourself. a clean run can spend about 54 seconds attached across two long tows.
+the full pickup plays first, including the hook and pull away. you start the road attached. fifteen cars cruise at 72 km/h with room between them. a clean run keeps a tow for long stretches. free skating settles at 50 km/h and can finish without catching another car.
 
 one press or swipe moves one lane. the tow supplies speed while you steer, jump and duck. the low coupe fits under a beam that you still need to duck under.
 
-a green marker and fire button show when a bumper is reachable. the poon takes time to reach it. release before the car takes the freight exit. holding on takes you off route and ends the run. releasing keeps your momentum.
+a green marker and fire button show when a bumper is reachable. the poon takes time to reach it. junction warnings show distance, the car exit and the straight delivery route. release before your tow turns. holding on shows the turn, then cuts the line and costs 15 cargo points. releasing keeps your momentum.
 
-traffic contact damages the box and slows you down. solid barriers stop you until you move around them. they do not let you skate through. losing the cargo, taking the wrong exit or running out of road time ends the run. retry keeps the pizza you made.
+traffic contact damages the box and slows you down. solid barriers stop you until you move around them. they do not let you skate through. losing the cargo or running out of road time ends the run. retry keeps the pizza you made.
 
 pause also works when you switch tabs. the slower road option removes collision damage and marks the receipt as assisted. automatic delivery skips the road and keeps the customer ending.
 
@@ -75,6 +75,7 @@ open [localhost:5177](http://localhost:5177). rebuild after changing the source.
     npm run lint
     npm run format:check
     npm test
+    node scripts/audit-delivery.js
     npx playwright install chromium
     npm run test:browser
 
@@ -112,6 +113,10 @@ GitHub Actions runs the checks on PRs and on main. merging to main publishes thr
 the build copies the page, source and Three.js into dist. tests, docs and screenshots are not published. everything is static. there is no backend.
 
 built with Three.js. needs WebGL. reduced motion removes banking and camera transitions. old recipe links still work, but there is no share button.
+
+## spec and review
+
+[delivery spec](docs/DELIVERY_SPEC.md) defines the expected behavior. [interaction audit](docs/INTERACTION_AUDIT.md) records played outcomes, automated checks, recovery results and remaining gaps.
 
 ## current scope
 

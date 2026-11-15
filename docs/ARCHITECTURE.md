@@ -26,13 +26,13 @@ courier-motion.js owns the path and timing. it uses elapsed seconds, so a slow f
 
 delivery-session.js owns the playable road and ending. it coordinates input, sound and scenes. the order controller still owns the pizza, caller and receipt.
 
-run-model.js is the pure simulation. it advances in steps of 1/120 second, clamps a frame to 0.25 seconds and applies each hazard once. route.js owns lane width, route length, hazard spacing and customer addresses. keep at least one reachable safe path.
+run-model.js is the pure simulation. it advances in steps of 1/120 second, clamps a frame to 0.25 seconds and applies each hazard once. route.js owns lane width, route length, hazard spacing, junctions and customer addresses. junctions belong to the road, not a car. keep at least one reachable safe path.
 
-tow-traffic.js advances independent world positions and speeds. following cars leave room for vehicles and the rider. merges wait for a gap. the renderer reads those same positions through towPose. do not invent another traffic timeline in the renderer.
+tow-traffic.js advances independent world positions at a shared cruising speed. cars are spaced to avoid queues. cars far behind the camera can recycle, but never the attached car or one still visible. following cars leave room for vehicles and the rider. merges wait for a gap. the renderer reads those same positions through towPose. do not invent another traffic timeline in the renderer.
 
 traffic-contact.js resolves the rider's proposed movement against cars before it reaches the renderer. a side contact rejects the unsafe sideways step. rear contact matches the car ahead. neither moves the rider backwards or into another lane. run-model.js applies damage and remembers the contact until the car clears.
 
-one input changes one lane through a short eased transition. towing supplies speed without owning the lane. hook flight and cooldown are explicit simulation states. the player releases before an exit. a missed exit, empty cargo or the road clock ends the run. assisted mode handles these actions explicitly. tests/delivery-pilot.js holds a repeatable clean route through the same public inputs.
+one input changes one lane through a short eased transition. towing supplies speed without owning the lane. hook flight and cooldown are explicit simulation states. the player releases before an exit. a missed exit cuts the line after the visible turn and costs cargo. empty cargo or the road clock ends the run. assisted mode handles these actions explicitly. tests/delivery-pilot.js holds a repeatable clean route through the same public inputs.
 
 skating-motion.js poses the existing joints. crouching changes the knees, torso and head rather than scaling the whole rider. the push foot reaches the road beside the board. the tow cable uses the launcher tip and rear bumper in world space.
 
@@ -81,3 +81,5 @@ docs/screenshots keeps earlier PR evidence. it is an archive, not a visual basel
 scripts/build.js replaces the generated dist folder and copies all of src. adding a source module does not need another entry in a build list. keep imports relative so the site works under /snowcrust/.
 
 the minimatch override is for the development tools. it is not shipped with the site.
+
+[the delivery spec](DELIVERY_SPEC.md) defines acceptance. [the interaction audit](INTERACTION_AUDIT.md) records the current evidence. scripts/audit-delivery.js exercises recovery choices through the same model inputs as the player.
