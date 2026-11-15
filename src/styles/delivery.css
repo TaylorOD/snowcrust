@@ -232,7 +232,14 @@ body[data-mode='dispatched'] .live-badge {
   display: none;
 }
 #run-address {
-  padding-right: 80px;
+  padding-right: 160px;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+#run-pause {
+  position: absolute;
+  top: 12px;
+  right: 96px;
 }
 #delivery-sound:focus-visible {
   outline: 2px solid #e9ba71;

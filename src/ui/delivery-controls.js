@@ -15,7 +15,7 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
     <div id="run-prompt" class="run-prompt">
       <h2>your delivery.</h2><p id="run-result" hidden></p><p>90 seconds. three lanes. keep the box intact.</p>
       <p>← → steer · ↑ jump · ↓ duck<br>space to catch or release a tow</p>
-      <p>already hooked. one swipe, one lane. steer while attached. release before your tow turns. a late release damages the box.</p>
+      <p><span id="run-start-note">already hooked. </span>one swipe, one lane. steer while attached. release before your tow turns. a late release damages the box.</p>
       <p>on a phone, swipe or use the buttons below.</p>
       <label><input type="checkbox" id="run-assist"> slower road / no damage</label><br>
       <button id="run-resume">start skating</button><button id="run-retry" hidden>retry delivery</button>
@@ -107,8 +107,13 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
       $('run-prompt').hidden = !value;
       $('run-resume').textContent = first ? 'start skating' : 'resume delivery';
       $('run-pause').hidden = value;
+      $('run-start-note').hidden = !first;
       if (value) $('run-resume').focus({ preventScroll: true });
-      else host.focus({ preventScroll: true });
+      else {
+        host.focus({ preventScroll: true });
+        // Removing the prompt can move the browser's scroll anchor in landscape.
+        requestAnimationFrame(() => host.scrollIntoView({ block: 'start', behavior: 'instant' }));
+      }
     },
     frame(state) {
       $('run-distance').textContent = Math.max(0, Math.ceil(routeLength - state.distance)) + ' m';
@@ -135,7 +140,7 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
           Math.floor(state.distance) +
           ' m / ' +
           state.catches +
-          ' catches / box ' +
+          (state.catches === 1 ? ' catch / box ' : ' catches / box ') +
           state.condition +
           '%';
         panel.querySelector('.run-prompt h2').textContent = state.failure;
