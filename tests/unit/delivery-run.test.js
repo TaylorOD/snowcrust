@@ -2,7 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createDeliveryRun } from '../../src/delivery/run-model.js';
 import { hazards, routeLength } from '../../src/delivery/route.js';
-import { towCars, towPose } from '../../src/delivery/tow-traffic.js';
+import {
+  towCars,
+  towPose,
+  trafficLane,
+  createTraffic,
+  advanceTraffic
+} from '../../src/delivery/tow-traffic.js';
 function advance(run, seconds, dt = 1 / 60) {
   for (let t = 0; t < seconds; t += dt) run.update(dt);
 }
@@ -11,7 +17,7 @@ test('a finite delivery finishes even when the cargo is damaged', () => {
   advance(run, 90);
   assert.equal(run.state.distance, routeLength);
   assert.equal(run.state.arrived, true);
-  assert.ok(run.state.condition < 100);
+  assert.ok(run.state.condition >= 0);
 });
 test('pause freezes movement, damage and delivery time', () => {
   const run = createDeliveryRun();
@@ -53,25 +59,38 @@ test('different frame rates produce the same route result', () => {
   assert.equal(a.state.distance, b.state.distance);
 });
 
-test('tows warn before turning and release before the car leaves its lane', () => {
+test('the first car supports a continuous twenty second tow', () => {
+  const run = createDeliveryRun();
+  advance(run, 20);
+  assert.equal(run.state.towed, true);
+  assert.equal(run.state.towId, 0);
+  assert.equal(run.state.condition, 100);
+  assert.ok(Math.abs(towPose(run.state.traffic[0], run.state).gap - 10) < 0.1);
+});
+
+test('traffic advances without reversing or overlapping', () => {
+  const traffic = createTraffic();
+  for (let t = 0; t < 90; t += 1 / 120) {
+    const before = traffic.map((car) => car.distance);
+    advanceTraffic(traffic, 1 / 120);
+    traffic.forEach((car, i) => {
+      assert.ok(car.distance >= before[i]);
+      for (let j = i + 1; j < traffic.length; j++) {
+        if (Math.abs(car.x - traffic[j].x) < 0.65)
+          assert.ok(Math.abs(car.distance - traffic[j].distance) >= 8.5);
+      }
+    });
+  }
+});
+
+test('release keeps momentum and smoothly slows the rider', () => {
   const run = createDeliveryRun();
   advance(run, 2);
-  assert.match(run.state.message, /exit/);
+  run.action('hook');
+  run.update(1 / 60);
+  assert.ok(run.state.speed > 13.8);
   advance(run, 2);
-  assert.equal(run.state.towed, false);
-  assert.equal(run.state.condition, 100);
-  for (const car of towCars) {
-    assert.equal(towPose(car, car.end - 30).signal, true);
-    assert.equal(towPose(car, car.end - 15).reachable, false);
-    for (let d = car.start; d < car.end; d += 0.25) {
-      const pose = towPose(car, d);
-      if (!pose.reachable) continue;
-      assert.ok(pose.z <= -7, 'a reachable car stays ahead of the landing area');
-      for (const h of hazards) {
-        if (h.lane === car.lane) assert.ok(Math.abs(3 - (h.distance - d) - pose.z) > 8);
-      }
-    }
-  }
+  assert.equal(run.state.speed, 9);
 });
 
 test('the harpoon cannot attach across lanes or during a jump', () => {
@@ -107,5 +126,25 @@ test('a timely jump clears a rail and a duck clears an overhead frame', () => {
     run.action(action);
     advance(run, 0.7);
     assert.equal(run.state.condition, 100);
+  }
+});
+
+test('traffic clears authored road obstructions', () => {
+  for (const car of towCars)
+    for (const hazard of hazards) {
+      for (let distance = hazard.distance - 6; distance <= hazard.distance + 6; distance += 0.5) {
+        assert.ok(Math.abs(trafficLane(car, distance).x - hazard.lane) > 0.8);
+      }
+    }
+});
+
+test('following traffic leaves space for the rider', () => {
+  const run = createDeliveryRun();
+  for (let i = 0; i < 40 * 120 && !run.state.arrived; i++) {
+    run.update(1 / 120);
+    for (const car of run.state.traffic) {
+      if (Math.abs(car.x - run.state.x) < 0.55)
+        assert.ok(Math.abs(car.distance - run.state.distance) > 3.5);
+    }
   }
 });

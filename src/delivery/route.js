@@ -4,9 +4,9 @@ export const routeLength = 560;
 export const laneWidth = 3.4;
 export const hazards = [
   [75, -1, 'van'],
-  [115, 0, 'rail'],
+  [115, 1, 'rail'],
   [155, 1, 'frame'],
-  [205, 0, 'van'],
+  [205, -1, 'van'],
   [250, -1, 'rail'],
   [295, 1, 'van'],
   [340, 0, 'frame'],

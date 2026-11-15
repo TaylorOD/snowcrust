@@ -1,5 +1,5 @@
-import { hazards, routeLength } from './route.js';
-import { towCars, towPose, availableTow } from './tow-traffic.js';
+import { hazards, routeLength, laneWidth } from './route.js';
+import { createTraffic, advanceTraffic, towPose, availableTow } from './tow-traffic.js';
 
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
@@ -8,6 +8,7 @@ const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 export function createDeliveryRun({ assisted = false } = {}) {
   const state = {
     assisted,
+    traffic: createTraffic(),
     distance: 0,
     elapsed: 0,
     lane: 0,
@@ -15,7 +16,7 @@ export function createDeliveryRun({ assisted = false } = {}) {
     height: 0,
     crouch: false,
     condition: 100,
-    speed: 11,
+    speed: 14,
     towed: true,
     towId: 0,
     targetId: 0,
@@ -53,25 +54,28 @@ export function createDeliveryRun({ assisted = false } = {}) {
       : 'free skating / catch a tow';
   }
   function step(dt) {
-    state.elapsed += dt;
     state.protection = Math.max(0, state.protection - dt);
     state.jump = Math.max(0, state.jump - dt);
     state.duck = Math.max(0, state.duck - dt);
     state.height = state.jump ? Math.sin((1 - state.jump / 0.85) * Math.PI) * 1.6 : 0;
     state.crouch = state.duck > 0;
-    state.x += (state.lane - state.x) * Math.min(12 * dt, 1);
-    state.speed = (state.protection > 0.8 ? 5 : state.towed ? 14 : 9) * (state.assisted ? 0.75 : 1);
+    if (state.towed) {
+      const pose = towPose(state.traffic[state.towId], state);
+      state.lane = Math.round(pose.x / laneWidth);
+      state.x += (pose.x / laneWidth - state.x) * Math.min(12 * dt, 1);
+    } else state.x += (state.lane - state.x) * Math.min(12 * dt, 1);
+    const scale = state.assisted ? 0.75 : 1;
+    const car = state.traffic[state.towId];
+    const gap = state.towed ? towPose(car, state).gap : 10;
+    const desired =
+      state.protection > 0.8 ? 5 : state.towed ? car.velocity + clamp((gap - 10) * 1.5, -3, 3) : 9;
+    // Keep momentum on release and take up the line gradually on a catch.
+    state.speed += clamp(desired * scale - state.speed, -6 * dt, 4 * dt);
+    advanceTraffic(state.traffic, dt * scale, state);
+    state.elapsed += dt;
     const before = state.distance;
     state.distance = Math.min(routeLength, before + state.speed * dt);
-    state.targetId = availableTow(state.distance, state.lane);
-    if (state.towed) {
-      const tow = towPose(towCars[state.towId], state.distance);
-      if (!tow.reachable) {
-        state.towed = false;
-        state.protection = Math.max(state.protection, 1.1);
-        state.message = 'wrong exit / safety release / find another tow';
-      } else if (tow.signal) state.message = 'car taking the exit / release now';
-    }
+    state.targetId = availableTow(state);
     for (const hazard of hazards) {
       if (passed.has(hazard.id) || hazard.distance > state.distance + 1.5) continue;
       passed.add(hazard.id);
@@ -87,7 +91,7 @@ export function createDeliveryRun({ assisted = false } = {}) {
         state.hits++;
         state.protection = 1.5;
         state.towed = false;
-        if (hazard.type === 'van') state.lane = hazard.lane === -1 ? 0 : -1;
+
         state.message = 'cargo impact / keep moving';
       }
     }

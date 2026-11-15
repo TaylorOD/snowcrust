@@ -106,17 +106,7 @@ export function createRunScene(scene, camera, models) {
     car.rotation.set(0, Math.PI / 2, 0);
     car.position.set((i - 1) * laneWidth, 0, -6);
     root.add(car);
-    const indicator = box(
-      -1.9,
-      0.65,
-      traffic[i].exit * 0.7,
-      0.14,
-      0.14,
-      0.14,
-      '#ffbc59',
-      car,
-      true
-    );
+    const indicator = box(-1.9, 0.65, 0.7, 0.14, 0.14, 0.14, '#ffbc59', car, true);
     car.userData.indicator = indicator;
     towCars.push(car);
   }
@@ -200,7 +190,7 @@ export function createRunScene(scene, camera, models) {
         object.visible = object.position.z > -65 && object.position.z < 8;
       });
       towCars.forEach((car, i) => {
-        const pose = towPose(traffic[i], state.distance);
+        const pose = towPose(state.traffic[i], state);
         car.position.set(pose.x, 0, pose.z);
         car.rotation.y = pose.yaw;
         car.visible = pose.visible;
