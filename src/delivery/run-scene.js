@@ -1,3 +1,4 @@
+import { frameRoadCamera } from './road-camera.js';
 import { createStreetDetails } from './street-details.js';
 import { createSkatingMotion } from './skating-motion.js';
 import * as THREE from '../../vendor/three.module.js';
@@ -288,11 +289,7 @@ export function createRunScene(scene, camera, models) {
       lastJunction.position.z = 3 - (routeLength - 30 - state.distance);
       billboard.position.z = -30 + (state.distance % 90);
       billboard.visible = state.distance < routeLength - 60;
-      position.set(state.x * 0.4, 3.6, 10.5);
-      camera.fov =
-        (camera.aspect < 0.8 ? 64 : 57) + (reduced ? 0 : Math.min(10, state.speed * 0.5));
-      camera.updateProjectionMatrix();
-      aim.set(state.x * 0.25, 1.2, -24);
+      frameRoadCamera(camera, state, reduced, position, aim);
       camera.position.lerp(position, blend);
       camera.lookAt(aim);
     }
