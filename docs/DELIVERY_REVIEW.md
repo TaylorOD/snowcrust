@@ -1,44 +1,39 @@
 # delivery review
 
-this pass keeps the pizza delivery and the existing art. the runner comparison is about readable movement, useful choices and a clear ending.
+this pass fixes the part that was not working. the road needs player input, traffic gives you a reason to catch a tow, and a missed action can end the delivery.
 
 ## what changed
 
-| part                   | result                                                               | review                                                                 |
-| ---------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| forward traffic        | cars have independent world positions and speeds                     | direction and spacing tests plus full runs                             |
-| longer towing          | the first car supports more than twenty seconds of continuous towing | a ducked beam run held the first tow for about 33.6 seconds            |
-| control while attached | carve, jump and duck without dropping the line                       | input tests and browser movement review                                |
-| traffic choices        | ten cars with different speeds and a reachable bumper window         | four cars ahead at dispatch, blocked hooks rejected                    |
-| road framing           | the road gets the full page width with a closer chase camera         | desktop, portrait and landscape screenshots                            |
-| skating                | connected joints, a push foot, crouch, jump anticipation and landing | joint clearance tests and motion review                                |
-| obstacles              | parked bays, service work and a beam that matters while towing       | jump and duck tests plus impact review                                 |
-| exits                  | cars signal and turn through a cleared side street                   | over three seconds of warning, turn geometry tests and recorded frames |
-| street progression     | dispatch frontage, overpass, franchise boundary and delivery access  | full route review, camera blocking sign fixed                          |
-| recovery               | a bump slows you and damages the box once                            | no lane teleport, no backwards step, no passing through moving cars    |
-| arrival                | the actual doorstep appears ahead and parking follows the approach   | desktop and phone approach review, exact pizza and bite checks         |
-| phone controls         | reachable target cue, thumb buttons and rotation handling            | portrait, landscape and touch input checks                             |
+| part      | result                                                                    |
+| --------- | ------------------------------------------------------------------------- |
+| lanes     | one press moves one lane in 0.18 seconds                                  |
+| traffic   | fifteen cars move forward at their own speeds                             |
+| towing    | manual catch, visible hook flight, separate release and retained momentum |
+| route     | 960 metres with two sustained tows in a clean run                         |
+| failure   | wrong exit, lost cargo or 90 seconds on the road                          |
+| obstacles | solid barriers stop you instead of letting you phase through              |
+| retry     | starts the road again with the same pizza                                 |
+| cargo     | the same box and grip through pickup, skating and customer handoff        |
+| phone     | the camera follows the rider so outside lanes stay visible                |
 
-## checks
+## review
 
-46 unit tests cover the order, pizza, delivery model, traffic, guidance and movement. the rapid input test runs thirty repeatable deliveries and checks traffic clearance and completion. a stopped tow test prevents backwards travel. lint and formatting are checked too.
+a full run with normal controls reached the customer with the box intact. it used two tows and about 67 seconds of road time. the first part was reviewed on desktop and the second part at phone size. a separate run checked the wrong exit failure.
 
-the browser suite covers desktop and phone layouts, keyboard and touch controls, pause, reset, replay, practice, all six customers, bitten pizza reactions, frozen receipts and GPU buffer reuse. the rotation check verifies the HUD stays on screen.
+review caught the retry buttons staying disabled, the box changing size, the lid hiding the customer and the courier leaving the phone view in outside lanes. those were fixed. both phone outside lanes were then reviewed again.
 
-visual review caught a car crowding the rider, an overhead sign covering the camera, a cropped phone destination sign, a hidden reset button and a clipped HUD after rotation. the final stress pass also found an ongoing merge that needed another clearance check. those were fixed before their changes were pushed.
+41 unit tests cover scoring, motion, collisions, hook timing, failure, a clean route, cargo clearance and camera framing. browser checks cover keyboard and touch, pause, failure, retry, replay, reset, every customer, bitten pizza, audio and buffer reuse.
 
-the screenshots are review evidence, not pixel baselines. the browser tests generate their own screenshots under artifacts.
+![the road](screenshots/runner-tow.jpg)
 
-![the overpass](screenshots/street-underpass.jpg)
+![phone outside lane](screenshots/road-phone-right.jpg)
 
-![phone tow cue](screenshots/tow-guidance-mobile.jpg)
-
-![arrival](screenshots/arrival-camera-mobile.jpg)
+![the same box at delivery](screenshots/cargo-desktop.jpg)
 
 ## limits
 
-this is still one finite route. different callers share it and get different doorsteps. the streets are an adaptation, not a map of the novel.
+one authored route. callers share the road and get their own doorstep. it is a game adaptation of the setting, not a map of the novel.
 
-the phone checks use Chromium at phone sizes. physical iPhone and Android performance is still unverified. the emulated browser checks do not establish a real device frame rate.
+phone checks use Chromium at phone sizes. physical iPhone and Android performance still needs device testing. screenshots and automated checks do not establish a real device frame rate.
 
-traffic is authored and deterministic. there is no procedural traffic generator or multiplayer simulation. no coins, upgrades or shop were added.
+traffic is deterministic. there is no procedural city, multiplayer, currency or upgrade shop.
