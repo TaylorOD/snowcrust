@@ -132,6 +132,7 @@ test('a timely jump clears a rail and a duck clears an overhead frame', () => {
 test('traffic clears authored road obstructions', () => {
   for (const car of towCars)
     for (const hazard of hazards) {
+      if (car.lowProfile && hazard.type === 'frame') continue;
       for (let distance = hazard.distance - 6; distance <= hazard.distance + 6; distance += 0.5) {
         assert.ok(Math.abs(trafficLane(car, distance).x - hazard.lane) > 0.8);
       }
@@ -167,6 +168,7 @@ test('the first tow warns for at least three seconds before its side street', ()
   const run = createDeliveryRun();
   let warnedAt = null;
   while (run.state.towed && run.state.elapsed < 60) {
+    if (run.state.distance > 332 && run.state.distance < 339) run.action('duck');
     run.update(1 / 120);
     if (warnedAt === null && /turning right/.test(run.state.message)) warnedAt = run.state.elapsed;
   }
@@ -194,4 +196,25 @@ test('the side street turn stays inside its cleared opening', () => {
       assert.ok(pose.yaw >= 0 && pose.yaw <= Math.PI / 2);
     }
   }
+});
+
+test('traffic contact prevents passing through a car and only damages once', () => {
+  const run = createDeliveryRun();
+  Object.assign(run.state, { towed: false, speed: 14 });
+  run.state.traffic = [{ start: 4, distance: 5.1, speed: 7, velocity: 7, lane: 0, x: 0 }];
+  advance(run, 0.3);
+  assert.equal(run.state.hits, 1);
+  assert.equal(run.state.condition, 90);
+  assert.ok(run.state.traffic[0].distance - run.state.distance >= 5);
+  assert.equal(run.state.lane, 0);
+  advance(run, 1.5);
+  assert.equal(run.state.hits, 1);
+});
+
+test('a low coupe passes a beam that its rider must duck under', () => {
+  assert.equal(trafficLane(towCars[0], 340).x, 0);
+  const run = createDeliveryRun();
+  advance(run, 32);
+  assert.ok(run.state.hits > 0);
+  assert.ok(run.state.condition < 100);
 });

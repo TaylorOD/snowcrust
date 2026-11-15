@@ -102,6 +102,7 @@ export function createDeliveryControls(host, { action, pause, resume }) {
       $('run-condition').textContent =
         'box ' + state.condition + '%' + (state.assisted ? ' / assisted' : '');
       $('run-clock').textContent = clock;
+      $('run-condition').style.color = state.protection > 0 ? '#ffb477' : '';
       $('run-hook').textContent = state.towed ? 'release tow' : 'catch tow';
       $('run-hook').disabled =
         !state.towed &&
