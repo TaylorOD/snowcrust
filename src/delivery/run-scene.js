@@ -1,7 +1,7 @@
 import { createSkatingMotion } from './skating-motion.js';
 import * as THREE from '../../vendor/three.module.js';
 import { hazards, laneWidth, routeLength } from './route.js';
-import { towCars as traffic, towPose } from './tow-traffic.js';
+import { towCars as traffic, towPose, freightExit } from './tow-traffic.js';
 
 // The road moves beneath a stationary rider. All objects are allocated once.
 export function createRunScene(scene, camera, models) {
@@ -87,6 +87,11 @@ export function createRunScene(scene, camera, models) {
     box(-side * 3.6, 2.3, 0, 0.04, 0.3, 1.3, '#c39c60', group, true);
     blocks.push(group);
   }
+  const exitRoad = new THREE.Group();
+  root.add(exitRoad);
+  box(19, 0.01, -16, 26, 0.02, 36, '#18232e', exitRoad);
+  for (const x of [8, 12, 16, 20, 24]) box(x, 0.025, -16, 2, 0.01, 0.12, '#8cb0bb', exitRoad);
+  const exitSign = sign('FREIGHT ACCESS / THROUGH ROUTE ↑', 6, 3.5, -60, 7);
   const rider = models.rider;
   rider.position.set(0, 0, 3);
   rider.rotation.y = Math.PI / 2;
@@ -111,6 +116,10 @@ export function createRunScene(scene, camera, models) {
     root.add(car);
     const indicator = box(-1.9, 0.65, 0.7, 0.14, 0.14, 0.14, '#ffbc59', car, true);
     car.userData.indicator = indicator;
+    car.userData.wheels = [];
+    car.traverse((object) => {
+      if (object.name === 'car-wheel') car.userData.wheels.push(object);
+    });
     towCars.push(car);
   }
   const obstacles = hazards.map((hazard, i) => {
@@ -183,7 +192,15 @@ export function createRunScene(scene, camera, models) {
       });
       blocks.forEach((b, i) => {
         b.position.z = 16 - ((Math.floor(i / 2) * 16 - (state.distance % 16) + 128) % 128);
+        const world = state.distance + 3 - b.position.z;
+        b.visible = !(
+          b.position.x > 0 &&
+          world > freightExit.distance - 15 &&
+          world < freightExit.distance + 50
+        );
       });
+      exitRoad.position.z = 3 - (freightExit.distance - state.distance);
+      exitSign.position.z = exitRoad.position.z + 10;
       obstacles.forEach((object, i) => {
         object.position.z = 3 - (hazards[i].distance - state.distance);
         object.visible = object.position.z > -65 && object.position.z < 8;
@@ -193,6 +210,9 @@ export function createRunScene(scene, camera, models) {
         car.position.set(pose.x, 0, pose.z);
         car.rotation.y = pose.yaw;
         car.visible = pose.visible;
+        car.userData.wheels.forEach((wheel) => {
+          wheel.rotation.z = -state.traffic[i].distance / 0.39;
+        });
         car.userData.indicator.visible =
           pose.signal && (reduced || Math.floor(state.elapsed * 3) % 2 === 0);
       });

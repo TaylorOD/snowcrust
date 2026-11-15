@@ -11,7 +11,7 @@ export const hazards = [
   [295, 1, 'van'],
   [340, 0, 'frame'],
   [385, -1, 'van'],
-  [430, 1, 'rail'],
+  [430, -1, 'rail'],
   [470, 0, 'van']
 ].map(([distance, lane, type], id) => ({ id, distance, lane, type }));
 
