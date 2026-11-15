@@ -1,3 +1,4 @@
+import { resolveTrafficContact } from './traffic-contact.js';
 import { hazards, routeLength, laneWidth } from './route.js';
 import { createTraffic, advanceTraffic, towPose, availableTow } from './tow-traffic.js';
 
@@ -31,6 +32,7 @@ export function createDeliveryRun({ assisted = false } = {}) {
     message: 'first tow attached'
   };
   const passed = new Set();
+  const contacts = new Set();
   let accumulator = 0;
   function action(name) {
     if (state.paused || state.arrived) return;
@@ -59,13 +61,34 @@ export function createDeliveryRun({ assisted = false } = {}) {
       ? 'tow attached / steer to carve / space to release'
       : 'free skating / catch a tow';
   }
+  function impact(amount, message) {
+    if (state.assisted || state.protection) return;
+    state.condition = Math.max(0, state.condition - amount);
+    state.hits++;
+    state.protection = 1.5;
+    state.towed = false;
+    state.lean = 0;
+    state.message = message;
+  }
   function step(dt) {
+    const previousX = state.x;
     state.protection = Math.max(0, state.protection - dt);
     state.landing = Math.max(0, state.landing - dt);
     const wasJumping = state.jump > 0;
     state.jump = Math.max(0, state.jump - dt);
     if (wasJumping && !state.jump) state.landing = 0.2;
     state.duck = Math.max(0, state.duck - dt);
+    if (
+      state.assisted &&
+      hazards.some(
+        (h) =>
+          h.type === 'frame' &&
+          Math.abs(h.lane - state.x) < 0.65 &&
+          h.distance > state.distance &&
+          h.distance - state.distance < 7
+      )
+    )
+      state.duck = 0.8;
     state.height =
       state.jump && state.jump < 0.85 ? Math.sin((1 - state.jump / 0.85) * Math.PI) * 1.6 : 0;
     state.crouch = state.duck > 0;
@@ -86,6 +109,14 @@ export function createDeliveryRun({ assisted = false } = {}) {
     state.elapsed += dt;
     const before = state.distance;
     state.distance = Math.min(routeLength, before + state.speed * dt);
+    const contact = resolveTrafficContact(state, previousX, before);
+    for (const car of contacts) {
+      if (Math.abs(car.distance - state.distance) > 9) contacts.delete(car);
+    }
+    if (contact && !contacts.has(contact)) {
+      contacts.add(contact);
+      impact(10, 'traffic contact / box damaged / steer clear');
+    }
     state.targetId = availableTow(state);
     if (state.towed && car.exit && car.distance >= car.exit.distance - 56) {
       state.message = 'tow turning right / release to stay on route';
@@ -105,17 +136,8 @@ export function createDeliveryRun({ assisted = false } = {}) {
           : hazard.type === 'frame'
             ? state.crouch
             : false;
-      if (!state.assisted && inLane && !clears && !state.protection) {
-        state.condition = Math.max(
-          0,
-          state.condition - (['van', 'works'].includes(hazard.type) ? 15 : 5)
-        );
-        state.hits++;
-        state.protection = 1.5;
-        state.towed = false;
-
-        state.message = 'cargo impact / keep moving';
-      }
+      if (inLane && !clears)
+        impact(['van', 'works'].includes(hazard.type) ? 15 : 5, 'cargo impact / keep moving');
     }
     state.arrived = state.distance >= routeLength;
   }

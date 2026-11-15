@@ -3,7 +3,7 @@ import { hazards, laneWidth } from './route.js';
 // Cars advance in world metres independently of the rider. Relative positions
 // are derived here so catching a car never reverses its travel.
 export const towCars = [
-  { start: 10, speed: 14, lane: 0, exit: { distance: 430, side: 1 } },
+  { start: 10, speed: 14, lane: 0, lowProfile: true, exit: { distance: 430, side: 1 } },
   { start: -28, speed: 16, lane: -1 },
   { start: 35, speed: 11, lane: 1 },
   { start: 65, speed: 12, lane: -1 },
@@ -21,7 +21,7 @@ function roadLane(car, distance) {
   let x = lane;
   let turn = 0;
   for (const hazard of hazards) {
-    if (hazard.lane !== lane) continue;
+    if (hazard.lane !== lane || (hazard.type === 'frame' && car.lowProfile)) continue;
     const next = lane === 0 ? (hazard.id % 2 ? -1 : 1) : 0;
     const t = Math.max(0, Math.min(1, (distance - hazard.distance + 28) / 16));
     if (!t) break;
@@ -68,9 +68,16 @@ export function advanceTraffic(traffic, seconds, rider = null) {
     let x = trafficLane(car, distance).x;
     const occupied = rider ? [...ordered, rider] : ordered;
     for (const ahead of occupied) {
-      if (ahead === car || ahead.distance <= before) continue;
+      if (ahead === car) continue;
       const crosses = Math.min(car.x, x) < ahead.x + 0.7 && Math.max(car.x, x) > ahead.x - 0.7;
-      if (crosses) distance = Math.min(distance, Math.max(before, ahead.distance - 9));
+      if (!crosses) continue;
+      // Wait for a clear gap before merging beside another vehicle or rider.
+      if (Math.abs(ahead.distance - before) < 9 && Math.abs(car.x - ahead.x) >= 0.7) {
+        distance = before;
+        break;
+      }
+      if (ahead.distance > before)
+        distance = Math.min(distance, Math.max(before, ahead.distance - 9));
     }
     x = trafficLane(car, distance).x;
     car.velocity = (distance - before) / seconds;
@@ -106,7 +113,14 @@ export function availableTow(state) {
   let gap = Infinity;
   state.traffic.forEach((car, i) => {
     const pose = towPose(car, state);
-    if (Math.abs(car.x - state.x) < 0.2 && pose.reachable && pose.gap < gap) {
+    const blocked = state.traffic.some(
+      (other) =>
+        other !== car &&
+        Math.abs(other.x - state.x) < 0.62 &&
+        other.distance > state.distance &&
+        other.distance < car.distance
+    );
+    if (!blocked && Math.abs(car.x - state.x) < 0.2 && pose.reachable && pose.gap < gap) {
       nearest = i;
       gap = pose.gap;
     }
