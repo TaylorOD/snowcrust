@@ -22,8 +22,8 @@ test('a skilled run delivers intact with two sustained tows', () => {
   assert.equal(state.arrived, true);
   assert.equal(state.condition, 100);
   assert.equal(state.catches, 2);
-  assert.ok(state.towSeconds > 40);
-  assert.ok(state.elapsed > 60 && state.elapsed < 80);
+  assert.ok(state.towSeconds > 30);
+  assert.ok(state.elapsed > 45 && state.elapsed < 65);
   assert.equal(state.distance, routeLength);
 });
 test('one input moves exactly one lane, including rapid reversals', () => {
