@@ -32,7 +32,7 @@ tow-traffic.js advances independent world positions and speeds. following cars l
 
 traffic-contact.js resolves the rider's proposed movement against cars before it reaches the renderer. a side contact rejects the unsafe sideways step. rear contact matches the car ahead. neither moves the rider backwards or into another lane. run-model.js applies damage and remembers the contact until the car clears.
 
-steering while attached changes the lean offset. another outward input releases the line. jump and duck preserve the attachment. cars signal before their exit and the automatic release happens before the turn. the first coupe fits under the service beam. assisted play ducks automatically.
+one input changes one lane through a short eased transition. towing supplies speed without owning the lane. hook flight and cooldown are explicit simulation states. the player releases before an exit. a missed exit, empty cargo or the road clock ends the run. assisted mode handles these actions explicitly. tests/delivery-pilot.js holds a repeatable clean route through the same public inputs.
 
 skating-motion.js poses the existing joints. crouching changes the knees, torso and head rather than scaling the whole rider. the push foot reaches the road beside the board. the tow cable uses the launcher tip and rear bumper in world space.
 
@@ -41,6 +41,10 @@ street-details.js owns the fixed landmarks. repeated box details are grouped by 
 run-scene.js reuses the original rider and car families. the road moves around a rider near the camera. meshes are allocated once. the longer road fog range is restored when the road hides.
 
 the last twenty metres release the tow and ease into the doorstep position. through traffic turns left before the forecourt. arrival-scene.js previews the same doorstep along the road, then keeps its final position during the handoff. the carried box position and camera rotation cross that transition too. the road stays behind the parked rider.
+
+road-camera.js owns the chase framing. portrait follows the rider across all lanes. the projection test includes the box and the highest jump. still look at both outside lanes in a browser.
+
+cargo-box.js owns the shared box and carry grip. pickup, road and arrival reuse its dimensions. hands derive their position from the grip rather than a second animation path.
 
 arrival-set.js builds the physical doorsteps. arrival-scene.js handles parking, the carry, box transfer and camera. delivered-pizza.js clones the actual pizza and changes only slice transforms. cloned meshes share kitchen geometry and materials. removing them must not dispose those shared resources.
 

@@ -24,11 +24,11 @@ retry delivery is practice. it starts the same road with your pizza and the time
 
 ## on the road
 
-one authored 560 metre route. three lanes. moving traffic, parked cars, road work and overhead frames. the street passes dispatch frontage, an overpass and a franchise boundary. most runs take about a minute. there is always a clear lane and being late does not end the run.
+one authored 960 metre route. three lanes. moving traffic, parked cars, road work and overhead frames. the street passes dispatch frontage, an overpass and a franchise boundary. a clean run takes about 67 seconds. there is always a clear path. the road has its own 90 second limit. missing the franchise guarantee lowers your delivery result but does not end the road.
 
 | action               | keyboard          | phone               |
 | -------------------- | ----------------- | ------------------- |
-| steer or carve       | arrows or A and D | swipe left or right |
+| change lane          | arrows or A and D | swipe left or right |
 | jump                 | up or W           | swipe up            |
 | duck                 | down or S         | swipe down          |
 | catch or release tow | space             | hook button         |
@@ -36,19 +36,19 @@ one authored 560 metre route. three lanes. moving traffic, parked cars, road wor
 
 touch buttons work too. the controls stay inside the play area.
 
-ten cars move at their own speeds. the first tow lasts over twenty seconds if you keep the box clear. there is no two second tow limit.
+fifteen cars move at their own speeds. you start skating and fire the poon yourself. a clean run can spend about 54 seconds attached across two long tows.
 
-steer once to carve beside the car. steer back to centre the line. steer farther out to leave it. jumping and ducking keep the tow attached. the low coupe fits under a beam that you still need to duck under.
+one press or swipe moves one lane. the tow supplies speed while you steer, jump and duck. the low coupe fits under a beam that you still need to duck under.
 
-a green marker and catch button show when a bumper is reachable. the first car gives you at least three seconds of warning before releasing you. it takes an actual side street. the safety release keeps your momentum instead of snapping you to a stop.
+a green marker and fire button show when a bumper is reachable. the poon takes time to reach it. release before the car takes the freight exit. holding on takes you off route and ends the run. releasing keeps your momentum.
 
-traffic contact damages the box once and slows you down. it does not throw you into another lane.
+traffic contact damages the box and slows you down. solid barriers stop you until you move around them. they do not let you skate through. losing the cargo, taking the wrong exit or running out of road time ends the run. retry keeps the pizza you made.
 
 pause also works when you switch tabs. the slower road option removes collision damage and marks the receipt as assisted. automatic delivery skips the road and keeps the customer ending.
 
 sound starts off. turn it on in the scene for wheels, traffic, the tow latch and delivery cues. every important cue has text too.
 
-![catching a tow](docs/screenshots/street-underpass.jpg)
+![catching a tow](docs/screenshots/runner-tow.jpg)
 
 ## at the door
 
@@ -56,7 +56,7 @@ the destination appears ahead. traffic turns away and the last twenty metres coa
 
 if you took a bite, they notice.
 
-![the customer opens the pizza](docs/screenshots/delivery-motel-reveal.png)
+![the customer opens the pizza](docs/screenshots/cargo-desktop.jpg)
 
 ![a RadiKS kourier picking up the pizza](docs/screenshots/snowcrust-desktop-pickup.png)
 
