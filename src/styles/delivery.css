@@ -12,6 +12,7 @@
 #run-panel button {
   pointer-events: auto;
   min-height: 44px;
+  min-width: 44px;
   padding: 10px 12px;
   background: #122b3d;
   border: 1px solid #569cd6;
@@ -147,5 +148,44 @@ body[data-mode='dispatched'] .scene-caption {
   body[data-mode='dispatched'] #scene {
     height: min(680px, 85dvh);
     min-height: 440px;
+  }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  body[data-mode='running'] .workbench,
+  body[data-mode='arriving'] .workbench,
+  body[data-mode='dispatched'] .workbench {
+    height: calc(100dvh - 20px);
+    min-height: 320px;
+    align-self: start;
+  }
+  body[data-mode='running'] .workbench .step-strip,
+  body[data-mode='arriving'] .workbench .step-strip,
+  body[data-mode='dispatched'] .workbench .step-strip {
+    display: none;
+  }
+  body[data-mode='running'] #scene,
+  body[data-mode='arriving'] #scene,
+  body[data-mode='dispatched'] #scene {
+    height: 100%;
+    min-height: 0;
+  }
+  .run-hud {
+    padding: 6px;
+    gap: 6px;
+  }
+  #run-address {
+    font-size: 10px;
+  }
+  .run-prompt {
+    top: 17%;
+    padding: 10px;
+    line-height: 1.3;
+  }
+  .run-prompt h2 {
+    margin: 0;
+    font-size: 18px;
+  }
+  .run-prompt p {
+    margin: 5px 0;
   }
 }

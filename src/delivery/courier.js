@@ -114,6 +114,7 @@ export function createCourier(scene) {
   }
   function wheel(parent, x, y, z, r, width, board = false) {
     const group = new THREE.Group();
+    group.name = board ? 'board-wheel' : 'car-wheel';
     group.position.set(x, y, z);
     parent.add(group);
     const tire = new THREE.Mesh(new THREE.CylinderGeometry(r, r, width, 20), rubber);

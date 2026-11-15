@@ -72,7 +72,7 @@ export function createDeliverySession({
       arrival.hide();
       const destination = destinationFor(ticket.customer);
       controls.show(destination.name + ' / ' + destination.address);
-      road.show();
+      road.show(destination);
       pause(true, true);
       host.scrollIntoView({ block: 'center', behavior: 'instant' });
     },
