@@ -24,11 +24,11 @@ retry delivery is practice. it starts the same road with your pizza and the time
 
 ## on the road
 
-one authored 560 metre route. three lanes. vans, low rails and overhead frames. most runs take about a minute. there is always a clear lane and being late does not end the run.
+one authored 560 metre route. three lanes. moving traffic, parked cars, road work and overhead frames. the street passes dispatch frontage, an overpass and a franchise boundary. most runs take about a minute. there is always a clear lane and being late does not end the run.
 
 | action               | keyboard          | phone               |
 | -------------------- | ----------------- | ------------------- |
-| change lane          | arrows or A and D | swipe left or right |
+| steer or carve       | arrows or A and D | swipe left or right |
 | jump                 | up or W           | swipe up            |
 | duck                 | down or S         | swipe down          |
 | catch or release tow | space             | hook button         |
@@ -36,17 +36,23 @@ one authored 560 metre route. three lanes. vans, low rails and overhead frames. 
 
 touch buttons work too. the controls stay inside the play area.
 
-a target marks a bumper you can reach. a car signals before it exits. let go early or the safety release slows you down. changing lanes or jumping releases the line first.
+ten cars move at their own speeds. the first tow lasts over twenty seconds if you keep the box clear. there is no two second tow limit.
+
+steer once to carve beside the car. steer back to centre the line. steer farther out to leave it. jumping and ducking keep the tow attached. the low coupe fits under a beam that you still need to duck under.
+
+a green marker and catch button show when a bumper is reachable. the first car gives you at least three seconds of warning before releasing you. it takes an actual side street. the safety release keeps your momentum instead of snapping you to a stop.
+
+traffic contact damages the box once and slows you down. it does not throw you into another lane.
 
 pause also works when you switch tabs. the slower road option removes collision damage and marks the receipt as assisted. automatic delivery skips the road and keeps the customer ending.
 
 sound starts off. turn it on in the scene for wheels, traffic, the tow latch and delivery cues. every important cue has text too.
 
-![catching a tow](docs/screenshots/delivery-tow-desktop.png)
+![catching a tow](docs/screenshots/street-underpass.jpg)
 
 ## at the door
 
-park the board and hand over the box. the customer's address selects a storage unit, gatehouse, motel or dispatch booth. the pizza keeps its toppings, browning and bite. damage moves the slices inside the box.
+the destination appears ahead. traffic turns away and the last twenty metres coast into the forecourt. park the board and hand over the box. reset stays available beside the handoff button. the customer's address selects a storage unit, gatehouse, motel or dispatch booth. the pizza keeps its toppings, browning and bite. damage moves the slices inside the box.
 
 if you took a bite, they notice.
 
@@ -97,7 +103,7 @@ use npm run format to format the code. look at the actual changed area on deskto
 
 index.html is the page. src/app.js connects the scene, kitchen and order controller.
 
-[architecture and editing guide](docs/ARCHITECTURE.md) / [world references](docs/WORLD.md)
+[architecture and editing guide](docs/ARCHITECTURE.md) / [delivery review](docs/DELIVERY_REVIEW.md) / [world references](docs/WORLD.md)
 
 ## publishing
 
