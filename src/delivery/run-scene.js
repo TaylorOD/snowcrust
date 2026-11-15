@@ -1,3 +1,4 @@
+import { createSkatingMotion } from './skating-motion.js';
 import * as THREE from '../../vendor/three.module.js';
 import { hazards, laneWidth, routeLength } from './route.js';
 import { towCars as traffic, towPose } from './tow-traffic.js';
@@ -90,7 +91,9 @@ export function createRunScene(scene, camera, models) {
   rider.position.set(0, 0, 3);
   rider.rotation.y = Math.PI / 2;
   root.add(rider);
-  const body = rider.getObjectByName('body');
+  const skating = createSkatingMotion(rider);
+  const hand = new THREE.Vector3(),
+    rear = new THREE.Vector3();
   const board = rider.getObjectByName('board');
   const wheels = [];
   board.traverse((object) => {
@@ -166,18 +169,14 @@ export function createRunScene(scene, camera, models) {
     frame(state, reduced, blend = 1) {
       root.visible = true;
       rider.position.set(state.x * laneWidth, state.height, 3);
-      const recovery = state.protection > 0.8;
-      body.scale.y = state.crouch || recovery ? 0.65 : 1;
+      const carry = skating.frame(state, reduced);
       board.rotation.x = reduced ? 0 : (state.lane - state.x) * 0.12;
       wheels.forEach((wheel) => {
         wheel.rotation.z = -state.distance / 0.23;
       });
       rider.rotation.z = reduced ? 0 : (state.lane - state.x) * -0.1;
-      parcel.position.set(
-        state.x * laneWidth - 0.35,
-        state.height + (state.crouch ? 0.8 : 1.2),
-        2.5
-      );
+      root.updateMatrixWorld(true);
+      parcel.position.copy(skating.body.localToWorld(hand.set(...carry)));
       parcel.rotation.z = (100 - state.condition) * 0.0008;
       markings.forEach((m, i) => {
         m.position.z = 12 - ((Math.floor(i / 2) * 5 - (state.distance % 5) + 140) % 140);
@@ -203,8 +202,13 @@ export function createRunScene(scene, camera, models) {
       if (car) target.position.set(car.position.x, 0.65, car.position.z + 2.2);
       cable.visible = state.towed && Boolean(car);
       const points = cableGeometry.attributes.position;
-      points.setXYZ(0, state.x * laneWidth, 1.1 + state.height, 2.4);
-      if (car) points.setXYZ(1, car.position.x, 0.65, car.position.z + 2.2);
+      skating.launcher.localToWorld(hand.set(0.2, 0, 0));
+      points.setXYZ(0, hand.x, hand.y, hand.z);
+      if (car) {
+        car.updateMatrixWorld(true);
+        car.localToWorld(rear.set(-2.17, 0.65, 0));
+        points.setXYZ(1, rear.x, rear.y, rear.z);
+      }
       points.needsUpdate = true;
       cableGeometry.computeBoundingSphere();
       destination.position.z = 3 - (routeLength - state.distance);
