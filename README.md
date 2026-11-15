@@ -1,10 +1,10 @@
 # Snowcrust
 
-make the pizza. get it out the door.
+make the pizza. catch a tow. get it there in one piece.
 
 [play Snowcrust](https://www.taylordorsett.com/snowcrust/)
 
-a small 3d pizza project set around C0saN0stra Pizza. take a call, match the toppings, bake it and send a RadiKS kourier into traffic.
+a small 3d pizza game set around C0saN0stra Pizza. take a call, match the toppings, bake it and skate the delivery. the customer opens the actual pizza you made.
 
 Snowcrust is the project name. C0saN0stra Pizza is the restaurant.
 
@@ -14,11 +14,43 @@ Snowcrust is the project name. C0saN0stra Pizza is the restaurant.
 
 six callers order from a menu of 14 toppings. sauce and mozzarella are already on the base. the ticket shows the extras they want.
 
-you get two minutes once prep starts. the ticket is already 28 minutes into the franchise's thirty minute guarantee. the clock keeps running through pickup. being late does not stop the order.
+you get two minutes once prep starts. the ticket is already 28 minutes into the franchise's thirty minute guarantee. the clock keeps running through pickup and the road. pause and the controls screen stop it. arrival freezes it before the handoff. being late does not stop the order.
 
-the customer scores the pizza from 0 to 100 based on the toppings. extras count against you. inspecting a slice lets you take a bite, which costs 10 points. delivery time is reported separately.
+the customer scores the pizza from 0 to 100 based on the toppings. extras count against you. inspecting a slice lets you take a bite, which costs 10 points. delivery time and pizza condition are separate. hitting traffic damages the box and shifts the slices. it does not change which toppings you cooked.
 
-reset clears the pizza and timer but keeps the caller. next call changes the customer. replay shows the pickup again with the original score and time.
+reset clears the pizza and timer but keeps the caller. next call changes the customer. replay handoff opens the same box again with the original result.
+
+retry delivery is practice. it starts the same road with your pizza and the time you had when skating began. it keeps the original receipt.
+
+## on the road
+
+one authored 560 metre route. three lanes. vans, low rails and overhead frames. most runs take about a minute. there is always a clear lane and being late does not end the run.
+
+| action               | keyboard          | phone               |
+| -------------------- | ----------------- | ------------------- |
+| change lane          | arrows or A and D | swipe left or right |
+| jump                 | up or W           | swipe up            |
+| duck                 | down or S         | swipe down          |
+| catch or release tow | space             | hook button         |
+| pause                | escape            | pause button        |
+
+touch buttons work too. the controls stay inside the play area.
+
+a target marks a bumper you can reach. a car signals before it exits. let go early or the safety release slows you down. changing lanes or jumping releases the line first.
+
+pause also works when you switch tabs. the slower road option removes collision damage and marks the receipt as assisted. automatic delivery skips the road and keeps the customer ending.
+
+sound starts off. turn it on in the scene for wheels, traffic, the tow latch and delivery cues. every important cue has text too.
+
+![catching a tow](docs/screenshots/delivery-tow-desktop.png)
+
+## at the door
+
+park the board and hand over the box. the customer's address selects a storage unit, gatehouse, motel or dispatch booth. the pizza keeps its toppings, browning and bite. damage moves the slices inside the box.
+
+if you took a bite, they notice.
+
+![the customer opens the pizza](docs/screenshots/delivery-motel-reveal.png)
 
 ![a RadiKS kourier picking up the pizza](docs/screenshots/snowcrust-desktop-pickup.png)
 
@@ -42,7 +74,7 @@ open [localhost:5177](http://localhost:5177). rebuild after changing the source.
 
 install Chromium once. on Linux, use npx playwright install with the --with-deps option if the browser needs system packages.
 
-the browser checks build their own copy and start a server on a free port. they cover desktop, mobile, baking, pickup, scoring, reset, old recipe links and reduced motion. screenshots go in artifacts/screenshots.
+the browser checks build their own copy and start a server on a free port. they cover desktop, mobile, baking, pickup, steering, swipes, pause, practice, scoring, reset, old recipe links and reduced motion. all six customer endings are checked. repeated deliveries must reuse GPU buffers. sound checks cover starting, pausing and muting the audio graph. screenshots go in artifacts/screenshots.
 
 use npm run format to format the code. look at the actual changed area on desktop and mobile before pushing. add screenshots to the PR.
 
@@ -51,13 +83,13 @@ use npm run format to format the code. look at the actual changed area on deskto
 | folder         | what belongs there                                      |
 | -------------- | ------------------------------------------------------- |
 | src/kitchen/   | pizza, ingredients, oven, peel and cooking motion       |
-| src/delivery/  | kourier, traffic and pickup motion                      |
+| src/delivery/  | pickup, road rules, traffic, sound and customer handoff |
 | src/order/     | order flow, callers, score, timer and recipe data       |
 | src/ui/        | page updates and pointer controls                       |
 | src/scene/     | renderer, camera, city and shared scene helpers         |
 | src/styles/    | page styles                                             |
 | scripts/       | build, local server and browser test runner             |
-| tests/unit/    | scoring, recipes and motion checks without a browser    |
+| tests/unit/    | scoring, recipes, route rules and pizza snapshot checks |
 | tests/browser/ | browser flows and screenshot helpers                    |
 | docs/          | architecture, world references and saved PR screenshots |
 | artifacts/     | generated test output, ignored by git                   |
@@ -73,6 +105,12 @@ GitHub Actions runs the checks on PRs and on main. merging to main publishes thr
 
 the build copies the page, source and Three.js into dist. tests, docs and screenshots are not published. everything is static. there is no backend.
 
-built with Three.js. needs WebGL. reduced motion uses a still handoff. old recipe links still work, but there is no share button.
+built with Three.js. needs WebGL. reduced motion removes banking and camera transitions. old recipe links still work, but there is no share button.
+
+## current scope
+
+this is one finite delivery road with different customer doorsteps. separate road layouts, shortcuts, local bests and a full shift can come later.
+
+browser checks use Chromium and emulated phone sizes. physical phone performance still needs real device testing.
 
 MIT license.
