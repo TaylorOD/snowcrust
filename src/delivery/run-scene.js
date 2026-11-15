@@ -232,6 +232,7 @@ export function createRunScene(scene, camera, models) {
       rider.rotation.z = reduced ? 0 : (state.lane - state.x) * -0.1;
       root.updateMatrixWorld(true);
       parcel.position.copy(skating.body.localToWorld(hand.set(...carry)));
+      parcel.quaternion.copy(rider.quaternion);
       parcel.rotation.z =
         (100 - state.condition) * 0.0008 +
         (reduced ? 0 : Math.sin(state.protection * 28) * Math.min(state.protection, 0.2));

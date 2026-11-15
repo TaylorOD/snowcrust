@@ -1,3 +1,4 @@
+import { carryGrip } from './cargo-box.js';
 import { routeLength } from './route.js';
 import * as THREE from '../../vendor/three.module.js';
 import { createGeometry } from '../scene/geometry.js';
@@ -10,7 +11,7 @@ const ease = (value) => {
 
 // A reusable doorstep set. Only the pizza meshes are cloned per order, and
 // those clones share kitchen geometry and materials rather than allocating GPU resources.
-export function createArrivalScene(scene, camera, riderModel) {
+export function createArrivalScene(scene, camera, riderModel, parcelModel) {
   const root = new THREE.Group();
   root.visible = false;
   scene.add(root);
@@ -61,23 +62,11 @@ export function createArrivalScene(scene, camera, riderModel) {
     mesh.scale.set(width, b.length(), width);
     mesh.quaternion.setFromUnitVectors(up, b.normalize());
   }
-  const parcel = new THREE.Group();
+  const parcel = parcelModel.clone(true);
   root.add(parcel);
-  box(1.45, 0.1, 1.45, pale, parcel);
-  for (const x of [-0.71, 0.71]) box(0.04, 0.2, 1.45, pale, parcel, x, 0.08, 0);
-  for (const z of [-0.71, 0.71]) box(1.45, 0.2, 0.04, pale, parcel, 0, 0.08, z);
-  const hinge = new THREE.Group();
-  parcel.add(hinge);
-  hinge.position.set(-0.72, 0.18, 0);
-  hinge.rotation.y = Math.PI / 2;
-  const lid = new THREE.Group();
-  hinge.add(lid);
-  box(1.45, 0.045, 1.45, pale, lid, 0, 0, 0.72);
-  box(1.3, 0.008, 0.05, material('#a34a40'), lid, 0, 0.03, 0.72);
-  const dents = new THREE.Group();
-  parcel.add(dents);
-  for (let i = 0; i < 3; i++)
-    box(0.05, 0.08, 0.01, dark, dents, -0.4 + i * 0.2, 0.05, 0.75).rotation.z = 0.5;
+  const lid = parcel.getObjectByName('cargo-lid');
+  const dents = parcel.getObjectByName('cargo-dents');
+  rider.getObjectByName('launcher').visible = false;
   let displayedPizza = null,
     damage = 0;
   let startFov = 52;
@@ -86,6 +75,8 @@ export function createArrivalScene(scene, camera, riderModel) {
   const cameraStart = new THREE.Vector3(),
     cameraTarget = new THREE.Vector3();
   const carryStart = new THREE.Vector3();
+  const hold = new THREE.Vector3(),
+    restHand = new THREE.Vector3();
   const carry = new THREE.Vector3(),
     destination = new THREE.Vector3(0, 1.12, 0.8);
   return {
@@ -126,8 +117,8 @@ export function createArrivalScene(scene, camera, riderModel) {
     frame(seconds, handedSeconds, reduced) {
       const park = ease(seconds / 2);
       const transfer = handedSeconds === null ? 0 : ease(handedSeconds / 1.5);
-      rider.position.set(2.1 - transfer * 0.8, 0, 4 - park * 2.2 - transfer * 0.5);
-      board.position.set(2.1 - park * 1.1, 0, 4 - park * 2.2);
+      rider.position.set(2.1 - park * 0.7 - transfer * 0.55, 0, 4 - park * 2.2);
+      board.position.set(2.1, 0, 4 - park * 2.2);
       board.rotation.set(0, Math.PI / 2 + (park * Math.PI) / 2, 0);
       body.position.y = -park * 0.3;
       body.position.z = 0;
@@ -136,7 +127,7 @@ export function createArrivalScene(scene, camera, riderModel) {
         ['front', 0.2]
       ]) {
         limb(side + '-thigh', [0, 0.9, 0], [x, 0.65, 0], 0.12);
-        const stride = Math.sin(transfer * Math.PI * 2 + (side === 'front' ? 0 : Math.PI));
+        const stride = Math.sin((park + transfer) * Math.PI * 2 + (side === 'front' ? 0 : Math.PI));
         const lift = Math.max(0, stride) * 0.07;
         const footX = x + stride * 0.1;
         limb(side + '-shin', [x, 0.65, 0], [footX, 0.42 + lift, 0], 0.105);
@@ -144,35 +135,46 @@ export function createArrivalScene(scene, camera, riderModel) {
         rider.getObjectByName(side + '-shoe').position.set(footX, lift, 0);
       }
       const release = handedSeconds === null ? 0 : ease((handedSeconds - 1.5) / 0.8);
-      const handX = (0.65 + transfer * 0.25) * (1 - release) + release * 0.25;
-      const handY = 1.34 - release * 0.4;
-      const handZ = transfer * 0.5 * (1 - release);
-      rider.getObjectByName('launcher').position.set(handX, handY, handZ - 0.25);
       torso.position.set(0, 1.15, 0);
       torso.rotation.z = 0;
       head.position.set(0, 1.8, 0);
       head.rotation.y = 0;
       rider.rotation.y = Math.PI / 2 + (park * Math.PI) / 2;
+      root.updateMatrixWorld(true);
+      // Derive the box from the same grip used on the road. It follows the
+      // body through parking, then moves between the two people's hands.
+      const grip = carryGrip(0);
+      carry.set(grip[0], grip[1] + 0.04, grip[2]);
+      body.localToWorld(carry);
+      root.worldToLocal(carry);
+      if (park < 1) carry.lerp(carryStart, 1 - park);
+      parcel.position.copy(carry).lerp(destination, transfer);
+      parcel.rotation.set(0, rider.rotation.y * (1 - transfer), 0);
+      parcel.updateMatrixWorld(true);
       for (const [side, z] of [
         ['left', 0.25],
         ['right', -0.25]
       ]) {
-        limb(side + '-upper-arm', [0, 1.4, z], [0.3, 1.15, z], 0.085);
-        limb(side + '-forearm', [0.3, 1.15, z], [handX, handY, z + handZ], 0.07);
-        rider.getObjectByName(side + '-elbow').position.set(0.3, 1.15, z);
+        // Hands stay on the near edge until the customer has taken the load.
+        hold.set(side === 'left' ? 0.22 : -0.22, -0.025, 0.24);
+        parcel.localToWorld(hold);
+        body.worldToLocal(hold);
+        hold.lerp(restHand.set(0.12, 0.85, z), release);
+        const shoulder = [0, 1.4, z];
+        const elbow = [0.2, 1.12, z + (hold.z - z) * 0.5];
+        limb(side + '-upper-arm', shoulder, elbow, 0.085);
+        limb(side + '-forearm', elbow, hold.toArray(), 0.07);
+        rider.getObjectByName(side + '-elbow').position.set(...elbow);
       }
       doorstep.frame(seconds);
       headset.rotation.x = handedSeconds === null ? 0 : -ease(handedSeconds / 1.2) * 1.2;
-      carry.set(1.05, 1.08, 1.8).lerp(carryStart, 1 - park);
-      parcel.position.copy(carry).lerp(destination, transfer);
-      parcel.rotation.set(0, (1 - transfer) * 0.2, 0);
-      lid.rotation.x = handedSeconds === null ? 0 : -ease((handedSeconds - 1.6) / 1.6) * 1.85;
+      lid.rotation.x = handedSeconds === null ? 0 : -ease((handedSeconds - 1.6) / 1.6) * 1.7;
       hands.forEach((hand) => {
         hand.position.y = 1.03 + transfer * 0.03;
       });
       const reveal = handedSeconds === null ? 0 : ease((handedSeconds - 1.5) / 2.5);
-      if (camera.aspect < 0.8) cameraTarget.set(3 - reveal, 5.5, 13 - reveal * 7);
-      else cameraTarget.set(4.5 - reveal * 2.4, 4.5 + reveal * 0.5, 8 - reveal * 4.2);
+      if (camera.aspect < 0.8) cameraTarget.set(3 - reveal * 1.5, 5.5 - reveal, 13 - reveal * 6);
+      else cameraTarget.set(4.5 - reveal * 2.4, 4.5 - reveal * 1.1, 8 - reveal * 4.8);
       const cameraBlend = reduced ? 1 : ease(seconds / 1.5);
       camera.fov = startFov + ((camera.aspect < 0.8 ? 58 : 42) - startFov) * cameraBlend;
       camera.position.lerpVectors(cameraStart, cameraTarget, reduced ? 1 : ease(seconds / 0.8));
