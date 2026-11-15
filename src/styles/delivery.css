@@ -238,3 +238,49 @@ body[data-mode='dispatched'] .live-badge {
   outline: 2px solid #e9ba71;
   outline-offset: 2px;
 }
+
+/* The active ride gets its own viewport. Order details return at the door. */
+body[data-mode='running'] .kitchen {
+  grid-template-columns: minmax(0, 1fr);
+}
+body[data-mode='running'] .recipe-panel,
+body[data-mode='running'] .intro,
+body[data-mode='running'] .customer-call,
+body[data-mode='running'] .step-strip {
+  display: none;
+}
+body[data-mode='running'] .workbench {
+  height: min(780px, calc(100dvh - 100px));
+  min-height: 400px;
+}
+body[data-mode='running'] #scene {
+  height: 100%;
+  min-height: 0;
+}
+@media (max-width: 740px) {
+  body[data-mode='running'] .workbench {
+    height: calc(100dvh - 76px);
+    min-height: 400px;
+  }
+  body[data-mode='running'] main {
+    padding-top: 0;
+  }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  body[data-mode='running'] .header {
+    display: none;
+  }
+  body[data-mode='running'] .workbench {
+    height: calc(100dvh - 12px);
+    min-height: 280px;
+  }
+}
+.run-buttons {
+  justify-content: flex-start;
+}
+#run-hook {
+  margin-left: auto;
+}
+body[data-mode='running'] main {
+  padding-top: 0;
+}

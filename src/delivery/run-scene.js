@@ -209,10 +209,10 @@ export function createRunScene(scene, camera, models) {
       cableGeometry.computeBoundingSphere();
       destination.position.z = 3 - (routeLength - state.distance);
       billboard.position.z = -30 + (state.distance % 90);
-      position.set(0, 8, 20);
-      camera.fov = camera.aspect < 0.8 ? 64 : 42;
+      position.set(state.x * 0.35, 5.5, 13);
+      camera.fov = camera.aspect < 0.8 ? 62 : 52;
       camera.updateProjectionMatrix();
-      aim.set(0, 0.7, -12);
+      aim.set(state.x * 0.2, 0, -12);
       camera.position.lerp(position, blend);
       camera.lookAt(aim);
     }
