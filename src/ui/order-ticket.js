@@ -73,6 +73,9 @@ export function createOrderTicket() {
     get customer() {
       return round.customer;
     },
+    get elapsed() {
+      return round.elapsed(clockNow());
+    },
     get result() {
       return deliveryResult;
     },

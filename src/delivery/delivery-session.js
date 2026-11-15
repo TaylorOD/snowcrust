@@ -17,17 +17,21 @@ export function createDeliverySession({
   onArrive,
   onFinish
 }) {
+  host.tabIndex = -1;
+  let tutorialSeen = false;
   const models = courier.models();
   const arrival = createArrivalScene(scene, camera, models.rider);
   const road = createRunScene(scene, camera, models);
   let run = null,
     transition = 0,
-    ending = null;
+    ending = null,
+    practice = false,
+    dispatchElapsed = 0;
   const handoff = document.createElement('div');
   handoff.className = 'handoff-controls';
   handoff.hidden = true;
   handoff.innerHTML =
-    '<p id="arrival-address"></p><button id="handover" disabled>parking</button><p id="customer-reaction" role="status"></p>';
+    '<p id="arrival-address"></p><button id="handover" disabled>parking</button><p id="customer-reaction" role="status"></p><p id="practice-summary"></p>';
   host.append(handoff);
   const button = handoff.querySelector('button');
   button.onclick = () => {
@@ -44,7 +48,10 @@ export function createDeliverySession({
   const controls = createDeliveryControls(host, {
     action: (name) => run?.action(name),
     pause: () => pause(true),
-    resume: () => pause(false)
+    resume: (assisted) => {
+      if (run && assisted) run.state.assisted = true;
+      pause(false);
+    }
   });
   function arrive(result) {
     run = null;
@@ -60,20 +67,32 @@ export function createDeliverySession({
     button.textContent = 'parking';
     handoff.querySelector('#arrival-address').textContent = address.name + ' / ' + address.address;
     handoff.querySelector('#customer-reaction').textContent = '';
+    handoff.querySelector('#practice-summary').textContent = result.practice
+      ? 'practice / box ' +
+        result.condition +
+        '% / ' +
+        Math.ceil(result.elapsed) +
+        ' seconds total. original receipt kept.'
+      : '';
     host.scrollIntoView({ block: 'center', behavior: 'instant' });
   }
   return {
     arrive,
-    start() {
+    start(options = {}) {
+      practice = Boolean(options.practice);
+      dispatchElapsed = options.elapsed ?? 0;
       run = createDeliveryRun();
       transition = 0;
       ending = null;
       handoff.hidden = true;
       arrival.hide();
       const destination = destinationFor(ticket.customer);
-      controls.show(destination.name + ' / ' + destination.address);
+      controls.show(
+        (practice ? 'practice / ' : '') + destination.name + ' / ' + destination.address
+      );
       road.show(destination);
-      pause(true, true);
+      pause(!tutorialSeen || practice, !tutorialSeen);
+      tutorialSeen = true;
       host.scrollIntoView({ block: 'center', behavior: 'instant' });
     },
     reset() {
@@ -103,7 +122,7 @@ export function createDeliverySession({
               ? 'right address. rough trip.'
               : result.score < 100
                 ? 'read the ticket next time.'
-                : result.elapsed > 120
+                : (ending.result.practice ? ending.result.elapsed : result.elapsed) > 120
                   ? 'you made it. eventually.'
                   : 'all here. still in one piece.';
           handoff.querySelector('#customer-reaction').textContent = reaction;
@@ -118,10 +137,16 @@ export function createDeliverySession({
       transition += dt;
       run.update(dt);
       road.frame(run.state, reduced, reduced ? 1 : Math.min(transition / 0.8, 1));
-      controls.frame(run.state, document.getElementById('order-clock').textContent);
+      const remaining = 120 - dispatchElapsed - run.state.elapsed;
+      const practiceClock = Math.abs(Math.ceil(remaining)) + (remaining < 0 ? 's late' : 's left');
+      controls.frame(
+        run.state,
+        practice ? practiceClock : document.getElementById('order-clock').textContent
+      );
       document.body.dataset.runDistance = Math.floor(run.state.distance);
       document.body.dataset.runLane = run.state.lane;
-      if (run.state.arrived) arrive({ ...run.state });
+      if (run.state.arrived)
+        arrive({ ...run.state, practice, elapsed: dispatchElapsed + run.state.elapsed });
     }
   };
 }

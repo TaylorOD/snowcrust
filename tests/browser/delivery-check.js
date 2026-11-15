@@ -9,7 +9,11 @@ try {
     ['desktop', 1440, 1050],
     ['mobile', 390, 844]
   ]) {
-    const page = await browser.newPage({ viewport: { width, height }, reducedMotion: 'reduce' });
+    const page = await browser.newPage({
+      viewport: { width, height },
+      reducedMotion: 'reduce',
+      hasTouch: name === 'mobile'
+    });
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     page.on('dialog', (dialog) => dialog.accept());
@@ -25,7 +29,19 @@ try {
     await page.clock.fastForward(10000);
     await expect(page.locator('#order-clock')).toHaveText(time);
     await page.locator('#run-resume').click();
-    await page.locator('[data-run="left"]').click();
+    if (name === 'desktop') await page.keyboard.press('ArrowLeft');
+    else {
+      const client = await page.context().newCDPSession(page);
+      const bounds = await page.locator('#scene').boundingBox();
+      const start = { x: bounds.x + 220, y: bounds.y + 200, id: 1 };
+      await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [start] });
+      await client.send('Input.dispatchTouchEvent', {
+        type: 'touchMove',
+        touchPoints: [{ ...start, x: start.x - 110 }]
+      });
+      await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await client.detach();
+    }
     await page.clock.runFor(700);
     await expect(page.locator('body')).toHaveAttribute('data-run-lane', '-1');
     await page
@@ -49,6 +65,19 @@ try {
     await page.locator('#replay').click();
     await page.clock.fastForward(5400);
     await finishHandoff(page);
+    await expect(page.locator('#receipt-condition')).toHaveText(receipt);
+    await expect(page.locator('#receipt-time')).toHaveText(recordedTime);
+    await page.locator('#practice').click();
+    await expect(page.locator('#run-address')).toContainText('practice');
+    await page.locator('#run-assist').check();
+    await page.locator('#run-resume').click();
+    for (let i = 0; i < 380; i++) await page.clock.fastForward(250);
+    await finishHandoff(page);
+    await expect(page.locator('#practice-summary')).toContainText('original receipt kept');
+    await page.screenshot({
+      path: 'artifacts/screenshots/practice-' + name + '.png',
+      fullPage: true
+    });
     await expect(page.locator('#receipt-condition')).toHaveText(receipt);
     await expect(page.locator('#receipt-time')).toHaveText(recordedTime);
     await page.locator('#reset').click();
