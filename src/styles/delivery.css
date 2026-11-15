@@ -291,3 +291,47 @@ body[data-mode='running'] main {
   box-sizing: border-box;
   top: 18%;
 }
+
+/* Keep the road framing through parking. The receipt restores the kitchen layout. */
+body[data-mode='arriving'] .kitchen {
+  grid-template-columns: minmax(0, 1fr);
+}
+body[data-mode='arriving'] .stage-top,
+body[data-mode='arriving'] .recipe-panel,
+body[data-mode='arriving'] .intro,
+body[data-mode='arriving'] .customer-call,
+body[data-mode='arriving'] .step-strip {
+  display: none;
+}
+body[data-mode='arriving'] .workbench {
+  height: min(780px, calc(100dvh - 100px));
+  min-height: 400px;
+}
+body[data-mode='arriving'] #scene {
+  height: 100%;
+  min-height: 0;
+}
+body[data-mode='arriving'] main {
+  padding-top: 0;
+}
+@media (max-width: 740px) {
+  body[data-mode='arriving'] .workbench {
+    height: calc(100dvh - 76px);
+  }
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  body[data-mode='arriving'] .header {
+    display: none;
+  }
+  body[data-mode='arriving'] .workbench {
+    height: calc(100dvh - 12px);
+    min-height: 280px;
+  }
+}
+
+.handoff-controls #reset {
+  width: auto;
+  margin: 0 0 0 8px;
+  background: #122b3d;
+  border-color: #569cd6;
+}

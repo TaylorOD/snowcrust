@@ -36,6 +36,10 @@ export function createDeliverySession({
     '<p id="arrival-address"></p><button id="handover" disabled>parking</button><p id="customer-reaction" role="status"></p><p id="practice-summary"></p>';
   host.append(handoff);
   const button = handoff.querySelector('button');
+  const resetButton = document.getElementById('reset');
+  const resetAnchor = document.createComment('reset order home');
+  resetButton.before(resetAnchor);
+  const restoreReset = () => resetAnchor.after(resetButton);
   button.onclick = () => {
     if (!ending || ending.handedAt !== null) return;
     audio.handoff();
@@ -61,12 +65,20 @@ export function createDeliverySession({
     audio.arrival();
     run = null;
     controls.hide();
-    road.hide();
+    if (result.arrived) road.park();
+    else road.hide();
     const address = destinationFor(ticket.customer);
     onArrive(result);
-    arrival.show(getPizza(), result, address, ticket.customer);
+    arrival.show(
+      getPizza(),
+      result,
+      address,
+      ticket.customer,
+      result.arrived ? road.parcel.position : null
+    );
     ending = { result, started: performance.now(), handedAt: null, finished: false };
     handoff.hidden = false;
+    button.after(resetButton);
     button.hidden = false;
     button.disabled = true;
     button.textContent = 'parking';
@@ -80,11 +92,13 @@ export function createDeliverySession({
         ' seconds total. original receipt kept.'
       : '';
     // The order controller updates the page layout after this callback.
-    requestAnimationFrame(() => host.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    if (!result.arrived)
+      requestAnimationFrame(() => host.scrollIntoView({ block: 'center', behavior: 'instant' }));
   }
   return {
     arrive,
     start(options = {}) {
+      restoreReset();
       audio.reset();
       practice = Boolean(options.practice);
       dispatchElapsed = options.elapsed ?? 0;
@@ -97,13 +111,15 @@ export function createDeliverySession({
       controls.show(
         (practice ? 'practice / ' : '') + destination.name + ' / ' + destination.address
       );
-      road.show(destination);
+      arrival.preview(destination, ticket.customer);
+      road.show();
       pause(!tutorialSeen || practice, !tutorialSeen);
       tutorialSeen = true;
       // The order controller updates the page layout after this callback.
       requestAnimationFrame(() => host.scrollIntoView({ block: 'center', behavior: 'instant' }));
     },
     reset() {
+      restoreReset();
       audio.reset();
       controls.hide();
       road.hide();
@@ -138,6 +154,7 @@ export function createDeliverySession({
         }
         if (handed !== null && handed >= 6 && !ending.finished) {
           ending.finished = true;
+          restoreReset();
           onFinish(ending.result);
         }
         return;
@@ -146,6 +163,7 @@ export function createDeliverySession({
       transition += dt;
       run.update(dt);
       audio.frame(run.state);
+      arrival.approach(run.state.distance);
       road.frame(run.state, reduced, reduced ? 1 : Math.min(transition / 0.8, 1));
       const remaining = 120 - dispatchElapsed - run.state.elapsed;
       const practiceClock = Math.abs(Math.ceil(remaining)) + (remaining < 0 ? 's late' : 's left');

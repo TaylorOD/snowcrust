@@ -41,7 +41,9 @@ export function createSkatingMotion(rider) {
       const landing = state.landing ? Math.sin((state.landing / 0.2) * Math.PI) : 0;
       const bend = state.crouch ? 0.42 : 0.12 + anticipation * 0.16 + landing * 0.15;
       const push =
-        !reduced && !state.towed && !state.jump && !state.crouch ? Math.sin(state.elapsed * 6) : 0;
+        !reduced && !state.towed && !state.approaching && !state.jump && !state.crouch
+          ? Math.sin(state.elapsed * 6)
+          : 0;
       const lean = state.towed ? -0.12 : 0.09;
       parts.body.scale.set(1, 1, 1);
       parts.body.position.set(0, 0, 0);
@@ -60,7 +62,10 @@ export function createSkatingMotion(rider) {
       ]) {
         const stride = side === 'back' ? push * 0.3 : 0;
         const lift = side === 'back' ? Math.max(0, push) * 0.15 + Math.min(0, push) * 0.25 : 0;
-        const footZ = side === 'back' && !state.towed && !state.jump && !state.crouch ? 0.45 : z;
+        const footZ =
+          side === 'back' && !state.towed && !state.approaching && !state.jump && !state.crouch
+            ? 0.45
+            : z;
         const knee = [footX + 0.18, 0.65 - bend * 0.45, footZ];
         limb(side + '-thigh', hip, knee, 0.12);
         limb(side + '-shin', knee, [footX + stride, 0.42 + lift, footZ], 0.105);

@@ -24,6 +24,7 @@ export function createDeliveryRun({ assisted = false } = {}) {
     targetId: 0,
     paused: false,
     arrived: false,
+    approaching: false,
     jump: 0,
     landing: 0,
     duck: 0,
@@ -35,7 +36,7 @@ export function createDeliveryRun({ assisted = false } = {}) {
   const contacts = new Set();
   let accumulator = 0;
   function action(name) {
-    if (state.paused || state.arrived) return;
+    if (state.paused || state.arrived || state.approaching) return;
     if (name === 'left' || name === 'right') {
       const direction = name === 'left' ? -1 : 1;
       const lean = state.lean + direction * 0.7;
@@ -72,6 +73,13 @@ export function createDeliveryRun({ assisted = false } = {}) {
   }
   function step(dt) {
     const previousX = state.x;
+    state.approaching = state.distance >= 540;
+    if (state.approaching) {
+      state.towed = false;
+      state.lean = 0;
+      state.lane = 2.1 / laneWidth;
+      state.message = 'address ahead / coasting to the door';
+    }
     state.protection = Math.max(0, state.protection - dt);
     state.landing = Math.max(0, state.landing - dt);
     const wasJumping = state.jump > 0;
@@ -101,8 +109,13 @@ export function createDeliveryRun({ assisted = false } = {}) {
     const scale = state.assisted ? 0.75 : 1;
     const car = state.traffic[state.towId];
     const gap = state.towed ? towPose(car, state).gap : 10;
-    const desired =
-      state.protection > 0.8 ? 5 : state.towed ? car.velocity + clamp((gap - 10) * 1.5, -3, 3) : 9;
+    const desired = state.approaching
+      ? 4
+      : state.protection > 0.8
+        ? 5
+        : state.towed
+          ? car.velocity + clamp((gap - 10) * 1.5, -3, 3)
+          : 9;
     // Keep momentum on release and take up the line gradually on a catch.
     state.speed += clamp(desired * scale - state.speed, -6 * dt, 4 * dt);
     advanceTraffic(state.traffic, dt * scale, state);
@@ -119,7 +132,8 @@ export function createDeliveryRun({ assisted = false } = {}) {
     }
     state.targetId = availableTow(state);
     if (state.towed && car.exit && car.distance >= car.exit.distance - 56) {
-      state.message = 'tow turning right / release to stay on route';
+      state.message =
+        'tow turning ' + (car.exit.side > 0 ? 'right' : 'left') + ' / release to stay on route';
       if (car.distance >= car.exit.distance - 12) {
         state.towed = false;
         state.lean = 0;
