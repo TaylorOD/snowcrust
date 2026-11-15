@@ -1,3 +1,4 @@
+import { createDeliverySession } from '../delivery/delivery-session.js';
 import { toppingPose } from '../kitchen/topping-motion.js';
 import { createOrderTicket } from '../ui/order-ticket.js';
 import { bakingPose, bakingDoneness, ovenLayout } from '../kitchen/oven-motion.js';
@@ -22,10 +23,25 @@ export function startOrder({
   const { carriage, pizza, slices, makeTopping, sliceIndex, setCooked } = kitchen;
   const courier = createCourier(scene);
   const ticket = createOrderTicket();
+  const deliverySession = createDeliverySession({
+    scene,
+    camera,
+    host,
+    courier,
+    ticket,
+    reduced: reduceMotion,
+    onFinish(result) {
+      mode = 'dispatched';
+      ticket.finish(toppings, bitten, result.condition);
+      update();
+      say('Delivery confirmed. Customer receipt is in.');
+    }
+  });
   let courierStarted = 0;
   let courierPhase = '';
   function restoreKitchen() {
     courier.reset();
+    deliverySession.reset();
     courierPhase = '';
     delete document.body.dataset.courierPhase;
     kitchen.setVisible(true);
@@ -48,6 +64,7 @@ export function startOrder({
   }
   function dispatch() {
     if (!['baked', 'sliced', 'dispatched'].includes(mode)) return;
+    deliverySession.reset();
     mode = 'pickup';
     courierStarted = performance.now();
     sliceTarget = 0;
@@ -236,7 +253,8 @@ export function startOrder({
   }
   window.addEventListener('hashchange', openRecipe);
   function animate(now) {
-    const dt = Math.min((now - lastTime) / 1000, 0.04);
+    const elapsed = Math.min((now - lastTime) / 1000, 0.25);
+    const dt = Math.min(elapsed, 0.04);
     lastTime = now;
     if (mode === 'pickup') {
       const delivery = courier.frame((now - courierStarted) / 1000, reduceMotion);
@@ -246,12 +264,20 @@ export function startOrder({
         updateCourierPhase(courierPhase);
       }
       if (delivery.done) {
-        mode = 'dispatched';
-        ticket.finish(toppings, bitten);
-        update();
-        say('Delivery confirmed. Customer receipt is in.');
+        if ($('assisted-delivery').checked || ticket.result) {
+          mode = 'dispatched';
+          ticket.finish(toppings, bitten, 100, true);
+          update();
+        } else {
+          mode = 'running';
+          courier.reset();
+          city.setVisible(false);
+          update();
+          deliverySession.start();
+        }
       }
     }
+    if (mode === 'running') deliverySession.frame(elapsed);
     pizza.rotation.y +=
       (rotationTarget - pizza.rotation.y) * (reduceMotion ? 1 : Math.min(dt * 12, 1));
     for (const topping of toppings) {

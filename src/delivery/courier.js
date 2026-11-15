@@ -446,6 +446,20 @@ export function createCourier(scene) {
     return { done: seconds >= deliveryDuration, phase };
   }
   return {
+    // Clones share the original geometry and materials. Build them once for
+    // the playable road rather than introducing a second visual style.
+    models() {
+      frame(3.6);
+      const models = {
+        rider: rider.clone(true),
+        parcel: parcel.clone(true),
+        cars: [targetCar, ...traffic.slice(0, 4).map((item) => item.car)].map((car) =>
+          car.clone(true)
+        )
+      };
+      frame(0);
+      return models;
+    },
     start() {
       root.visible = true;
       frame(0);

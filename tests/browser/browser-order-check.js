@@ -32,6 +32,7 @@ export async function checkCustomerOrder(page, baseUrl, name) {
     await page.locator('#primary').click();
     await page.locator('#bite').click();
   }
+  await page.locator('#assisted-delivery').check();
   await page.locator('#dispatch').click();
   await page.clock.fastForward(5400);
   await expect(page.locator('#order-score')).toHaveText(name === 'mobile' ? '90' : '100');

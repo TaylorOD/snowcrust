@@ -6,6 +6,9 @@ const duration = (seconds) =>
 export function createOrderTicket() {
   const round = createRound();
   let lastClock = '';
+  let pausedAt = null,
+    excluded = 0;
+  const clockNow = () => (pausedAt ?? performance.now()) - excluded;
   function renderCustomer() {
     const customer = round.customer;
     $('caller-name').textContent = customer.name;
@@ -27,7 +30,7 @@ export function createOrderTicket() {
     }
   }
   function tick(now) {
-    const elapsed = round.elapsed(now);
+    const elapsed = round.elapsed(pausedAt === null ? now - excluded : pausedAt - excluded);
     const late = elapsed > orderSeconds;
     const clock = late
       ? `${duration(Math.ceil(elapsed - orderSeconds))} late`
@@ -56,6 +59,8 @@ export function createOrderTicket() {
   }
   function reset() {
     round.reset();
+    pausedAt = null;
+    excluded = 0;
     $('order-receipt').hidden = true;
     $('call-state').textContent = 'franchise line open';
     tick(performance.now());
@@ -63,11 +68,24 @@ export function createOrderTicket() {
   renderCustomer();
   reset();
   return {
+    get customer() {
+      return round.customer;
+    },
+    get result() {
+      return round.result;
+    },
+    pause(value) {
+      if (value && pausedAt === null) pausedAt = performance.now();
+      if (!value && pausedAt !== null) {
+        excluded += performance.now() - pausedAt;
+        pausedAt = null;
+      }
+    },
     tick,
     update,
     reset,
     begin() {
-      round.start(performance.now());
+      round.start(clockNow());
       $('call-state').textContent = 'ticket in production';
     },
     next() {
@@ -75,8 +93,8 @@ export function createOrderTicket() {
       renderCustomer();
       reset();
     },
-    finish(toppings, bitten) {
-      const result = round.finish(toppings, bitten, performance.now());
+    finish(toppings, bitten, condition = 100, assisted = false) {
+      const result = round.finish(toppings, bitten, clockNow());
       $('call-state').textContent = 'delivery confirmed';
       $('order-score').textContent = `${result.score}`;
       $('receipt-title').textContent =
@@ -93,6 +111,8 @@ export function createOrderTicket() {
       $('score-details').textContent = notes.join(' ');
       $('receipt-time').textContent =
         `Delivered in ${duration(Math.ceil(result.elapsed))}. ${result.elapsed > orderSeconds ? 'Late arrival.' : 'On time.'}`;
+      $('receipt-condition').textContent =
+        'pizza condition ' + condition + '/100' + (assisted ? ' / assisted delivery' : '');
       $('order-receipt').hidden = false;
       tick(performance.now());
     }

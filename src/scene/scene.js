@@ -41,6 +41,8 @@ export function createScene(host) {
     deliveringNow = delivering;
     fireLight.visible = !delivering;
     const mobile = host.clientWidth < 500;
+    camera.fov = mobile ? 43 : 34;
+    camera.updateProjectionMatrix();
     if (delivering) {
       camera.position.set(...(mobile ? [1, 7, 17] : [3, 9, 21]));
       camera.lookAt(...(mobile ? [-3, 1.5, 3] : [-3, 2, 1]));

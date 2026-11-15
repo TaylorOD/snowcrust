@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="src/styles/style.css" />
     <link rel="stylesheet" href="src/styles/dispatch.css" />
     <link rel="stylesheet" href="src/styles/orders.css" />
+    <link rel="stylesheet" href="src/styles/delivery.css" />
   </head>
   <body>
     <header class="header">
@@ -142,6 +143,9 @@
             <progress id="progress" value="0" max="1" aria-label="Baking progress"></progress>
           </div>
 
+          <label id="assisted-label"
+            ><input type="checkbox" id="assisted-delivery" /> automatic delivery</label
+          >
           <button id="dispatch" class="primary" hidden>
             <span>call kourier</span><span>↗</span>
           </button>
@@ -161,6 +165,7 @@
             <h2 id="receipt-title"></h2>
             <p id="score-details"></p>
             <p id="receipt-time"></p>
+            <p id="receipt-condition"></p>
           </section>
           <div class="round-timer">
             <div id="order-clock" role="timer" aria-live="off">2:00 left</div>

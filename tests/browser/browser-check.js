@@ -49,6 +49,7 @@ try {
   await expect(page.locator('body')).toHaveAttribute('data-bitten', 'true');
   await expect(page.locator('#bite')).toBeDisabled();
   await page.screenshot({ path: 'artifacts/screenshots/baked.png', fullPage: true });
+  await page.locator('#assisted-delivery').check();
   await page.locator('#dispatch').click();
   assert.equal(await page.locator('body').getAttribute('data-mode'), 'pickup');
   await expect(page.locator('#delivery-comment')).toBeVisible();
@@ -99,6 +100,7 @@ try {
   await reduced.goto(baseUrl);
   await reduced.locator('#primary').click();
   await reduced.clock.fastForward(9000);
+  await reduced.locator('#assisted-delivery').check();
   await reduced.locator('#dispatch').click();
   await reduced.clock.fastForward(1000);
   await reduced.screenshot({ path: 'artifacts/screenshots/courier-mobile.png', fullPage: true });
@@ -113,6 +115,7 @@ try {
   assert.equal(await reduced.locator('body').getAttribute('data-mode'), 'prep');
   await reduced.locator('#primary').click();
   await reduced.clock.fastForward(9000);
+  await reduced.locator('#assisted-delivery').check();
   await reduced.locator('#dispatch').click();
   await reduced.locator('#reset').click();
   await reduced.clock.fastForward(10000);
@@ -124,6 +127,7 @@ try {
   await phases.goto(baseUrl);
   await phases.locator('#primary').click();
   await phases.clock.fastForward(9000);
+  await phases.locator('#assisted-delivery').check();
   await phases.locator('#dispatch').click();
   await phases.clock.fastForward(500);
   assert.equal(await phases.locator('body').getAttribute('data-courier-phase'), 'collect');
@@ -136,6 +140,7 @@ try {
   await phases.locator('#primary').click();
   await phases.locator('#primary').click();
   await phases.clock.fastForward(9000);
+  await phases.locator('#assisted-delivery').check();
   await phases.locator('#dispatch').click();
   await phases.clock.fastForward(500);
   assert.equal(await phases.locator('body').getAttribute('data-courier-phase'), 'collect');
@@ -268,7 +273,10 @@ try {
     await recipePage.locator('#primary').click();
     await recipePage.clock.fastForward(mode === 'baking' ? 4000 : 9000);
     if (mode === 'sliced') await recipePage.locator('#primary').click();
-    if (mode === 'pickup') await recipePage.locator('#dispatch').click();
+    if (mode === 'pickup') {
+      await recipePage.locator('#assisted-delivery').check();
+      await recipePage.locator('#dispatch').click();
+    }
     await loadRecipe();
     assert.ok(
       (await sceneFrame(recipePage, { clock: true })).equals(freshRecipe),
