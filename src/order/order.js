@@ -47,6 +47,7 @@ export function startOrder({
     }
   });
   let courierStarted = 0;
+  let dispatchElapsed = 0;
   let courierPhase = '';
   function restoreKitchen() {
     courier.reset();
@@ -74,6 +75,7 @@ export function startOrder({
   function dispatch() {
     if (!['baked', 'sliced', 'dispatched'].includes(mode)) return;
     deliverySession.reset();
+    dispatchElapsed = ticket.elapsed;
     mode = 'pickup';
     courierStarted = performance.now();
     sliceTarget = 0;
@@ -86,7 +88,17 @@ export function startOrder({
     say('Kourier rolling up to the cargo window.');
   }
   $('dispatch').addEventListener('click', dispatch);
-  $('replay').addEventListener('click', dispatch);
+  $('replay').addEventListener('click', () => {
+    if (mode === 'dispatched') deliverySession.arrive(ticket.result);
+  });
+  $('practice').addEventListener('click', () => {
+    if (mode !== 'dispatched') return;
+    deliverySession.reset();
+    mode = 'running';
+    update();
+    $('order-receipt').hidden = true;
+    deliverySession.start({ practice: true, elapsed: dispatchElapsed });
+  });
   function addTopping(type, x, z, angle = Math.random() * Math.PI * 2, animate = true) {
     if (mode !== 'prep' || toppings.length >= maxToppings) return;
     const group = makeTopping(type);
@@ -273,6 +285,7 @@ export function startOrder({
         updateCourierPhase(courierPhase);
       }
       if (delivery.done) {
+        dispatchElapsed = ticket.elapsed;
         if ($('assisted-delivery').checked || ticket.result) {
           deliverySession.arrive(ticket.result ?? { condition: 100, assisted: true });
         } else {

@@ -7,6 +7,7 @@ const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 // follow the same route. Fixed substeps prevent tunnelling through obstacles.
 export function createDeliveryRun({ assisted = false } = {}) {
   const state = {
+    assisted,
     distance: 0,
     elapsed: 0,
     lane: 0,
@@ -59,7 +60,7 @@ export function createDeliveryRun({ assisted = false } = {}) {
     state.height = state.jump ? Math.sin((1 - state.jump / 0.85) * Math.PI) * 1.6 : 0;
     state.crouch = state.duck > 0;
     state.x += (state.lane - state.x) * Math.min(12 * dt, 1);
-    state.speed = state.protection > 0.8 ? 5 : state.towed ? 14 : 9;
+    state.speed = (state.protection > 0.8 ? 5 : state.towed ? 14 : 9) * (state.assisted ? 0.75 : 1);
     const before = state.distance;
     state.distance = Math.min(routeLength, before + state.speed * dt);
     state.targetId = availableTow(state.distance, state.lane);
@@ -81,7 +82,7 @@ export function createDeliveryRun({ assisted = false } = {}) {
           : hazard.type === 'frame'
             ? state.crouch
             : false;
-      if (!assisted && inLane && !clears && !state.protection) {
+      if (!state.assisted && inLane && !clears && !state.protection) {
         state.condition = Math.max(0, state.condition - (hazard.type === 'van' ? 15 : 5));
         state.hits++;
         state.protection = 1.5;

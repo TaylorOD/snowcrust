@@ -16,8 +16,16 @@ export function updateOrderView({ mode, toppingCount, bitten = false }) {
   $('primary').disabled = ['baking', 'pickup', 'running', 'arriving'].includes(mode);
   $('dispatch').hidden = !['baked', 'sliced'].includes(mode);
   $('replay').hidden = mode !== 'dispatched';
+  $('practice').hidden = mode !== 'dispatched';
+  $('scene').setAttribute('role', delivering ? 'region' : 'img');
+  $('scene').setAttribute(
+    'aria-label',
+    delivering
+      ? 'Pizza delivery and courier controls'
+      : 'Pizza kitchen. Select a topping, then tap the pizza. Drag to rotate.'
+  );
   document.querySelector('.turn-controls').hidden = delivering;
-  $('delivery-status').hidden = !delivering;
+  $('delivery-status').hidden = mode !== 'pickup';
   $('prep-controls').hidden = mode !== 'prep';
   $('bake-progress').hidden = mode !== 'baking';
   $('primary').innerHTML =
@@ -74,12 +82,12 @@ export function updateOrderView({ mode, toppingCount, bitten = false }) {
     $('panel-copy').textContent =
       mode === 'pickup'
         ? 'RadiKS pickup. Delivery address loaded in the smart box.'
-        : 'Check the receipt, replay the pickup or take the next call.';
+        : 'Check the receipt, retry the road or take the next call.';
     $('primary').innerHTML =
       mode === 'pickup'
         ? '<span>pickup in progress</span>'
         : '<span>next call</span><span>↗</span>';
-    $('scene-label').textContent = 'STREET';
+    $('scene-label').textContent = mode === 'pickup' ? 'STREET' : 'DELIVERED';
     $('oven-label').textContent = mode === 'pickup' ? 'KOURIER ACTIVE' : 'CARGO DELIVERED';
     $('scene-instruction').textContent =
       mode === 'pickup' ? 'kourier pickup and bumper tow' : 'delivery confirmed';

@@ -110,9 +110,9 @@ try {
   await finishHandoff(reduced, true);
   assert.equal(await reduced.locator('body').getAttribute('data-mode'), 'dispatched');
   await reduced.locator('#replay').click();
-  assert.equal(await reduced.locator('body').getAttribute('data-mode'), 'pickup');
+  assert.equal(await reduced.locator('body').getAttribute('data-mode'), 'arriving');
   await reduced.clock.fastForward(1000);
-  assert.equal(await reduced.locator('body').getAttribute('data-courier-phase'), 'ride');
+  await expect(reduced.locator('#handover')).toBeVisible();
   reduced.on('dialog', (d) => d.accept());
   await reduced.locator('#reset').click();
   assert.equal(await reduced.locator('body').getAttribute('data-mode'), 'prep');

@@ -12,6 +12,7 @@ export function createDeliveryControls(host, { action, pause, resume }) {
       <h2>your delivery.</h2><p>three lanes. keep the box intact.</p>
       <p>← → steer · ↑ jump · ↓ duck<br>space to catch or release a tow</p>
       <p>on a phone, swipe or use the buttons below.</p>
+      <label><input type="checkbox" id="run-assist"> slower road / no damage</label><br>
       <button id="run-resume">start skating</button>
     </div>
     <div class="run-buttons">
@@ -27,7 +28,11 @@ export function createDeliveryControls(host, { action, pause, resume }) {
     .querySelectorAll('[data-run]')
     .forEach((button) => button.addEventListener('click', () => action(button.dataset.run)));
   $('run-pause').onclick = pause;
-  $('run-resume').onclick = resume;
+  $('run-resume').onclick = () => {
+    const assisted = $('run-assist').checked;
+    if (assisted) $('run-assist').disabled = true;
+    resume(assisted);
+  };
   const keys = {
     ArrowLeft: 'left',
     a: 'left',
@@ -41,6 +46,7 @@ export function createDeliveryControls(host, { action, pause, resume }) {
   };
   window.addEventListener('keydown', (event) => {
     if (panel.hidden || event.target.closest('input,select,textarea')) return;
+    if (event.key === ' ' && event.target.closest('button')) return;
     if (event.code === 'Escape') {
       event.preventDefault();
       pause();
@@ -51,7 +57,7 @@ export function createDeliveryControls(host, { action, pause, resume }) {
   });
   let start = null;
   host.addEventListener('pointerdown', (e) => {
-    if (panel.hidden || e.target.closest('button')) return;
+    if (panel.hidden || e.target.closest('button,input,label,#run-prompt')) return;
     start = { x: e.clientX, y: e.clientY, id: e.pointerId };
     host.setPointerCapture(e.pointerId);
   });
@@ -72,6 +78,8 @@ export function createDeliveryControls(host, { action, pause, resume }) {
   return {
     show(address) {
       panel.hidden = false;
+      $('run-assist').checked = false;
+      $('run-assist').disabled = false;
       $('run-address').textContent = address;
     },
     hide() {
@@ -82,10 +90,13 @@ export function createDeliveryControls(host, { action, pause, resume }) {
       $('run-prompt').hidden = !value;
       $('run-resume').textContent = first ? 'start skating' : 'resume delivery';
       $('run-pause').hidden = value;
+      if (value) $('run-resume').focus({ preventScroll: true });
+      else host.focus({ preventScroll: true });
     },
     frame(state, clock) {
       $('run-distance').textContent = Math.max(0, Math.ceil(560 - state.distance)) + ' m';
-      $('run-condition').textContent = 'box ' + state.condition + '%';
+      $('run-condition').textContent =
+        'box ' + state.condition + '%' + (state.assisted ? ' / assisted' : '');
       $('run-clock').textContent = clock;
       $('run-hook').textContent = state.towed ? 'release tow' : 'catch tow';
       $('run-hook').disabled =
