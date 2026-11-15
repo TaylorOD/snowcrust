@@ -23,6 +23,7 @@ export function createDeliveryRun({ assisted = false } = {}) {
     paused: false,
     arrived: false,
     jump: 0,
+    landing: 0,
     duck: 0,
     protection: 0,
     hits: 0,
@@ -40,7 +41,7 @@ export function createDeliveryRun({ assisted = false } = {}) {
       }
     } else if (name === 'jump' && !state.jump) {
       state.towed = false;
-      state.jump = 0.85;
+      state.jump = 0.91;
     } else if (name === 'duck') state.duck = 0.8;
     else if (name === 'hook') {
       if (state.towed) state.towed = false;
@@ -55,9 +56,13 @@ export function createDeliveryRun({ assisted = false } = {}) {
   }
   function step(dt) {
     state.protection = Math.max(0, state.protection - dt);
+    state.landing = Math.max(0, state.landing - dt);
+    const wasJumping = state.jump > 0;
     state.jump = Math.max(0, state.jump - dt);
+    if (wasJumping && !state.jump) state.landing = 0.2;
     state.duck = Math.max(0, state.duck - dt);
-    state.height = state.jump ? Math.sin((1 - state.jump / 0.85) * Math.PI) * 1.6 : 0;
+    state.height =
+      state.jump && state.jump < 0.85 ? Math.sin((1 - state.jump / 0.85) * Math.PI) * 1.6 : 0;
     state.crouch = state.duck > 0;
     if (state.towed) {
       const pose = towPose(state.traffic[state.towId], state);
