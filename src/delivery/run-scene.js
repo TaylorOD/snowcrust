@@ -1,3 +1,4 @@
+import { createStreetDetails } from './street-details.js';
 import { createSkatingMotion } from './skating-motion.js';
 import * as THREE from '../../vendor/three.module.js';
 import { hazards, laneWidth, routeLength } from './route.js';
@@ -31,6 +32,28 @@ export function createRunScene(scene, camera, models) {
     mesh.castShadow = true;
     parent.add(mesh);
     return mesh;
+  }
+  // Buildings and landmarks move as groups. Batch repeated boxes by material
+  // once, preserving their local transforms and shared geometry.
+  function batch(group) {
+    const buckets = new Map();
+    group.children.forEach((mesh) => {
+      if (mesh.geometry !== cube || mesh.isInstancedMesh) return;
+      if (!buckets.has(mesh.material)) buckets.set(mesh.material, []);
+      buckets.get(mesh.material).push(mesh);
+    });
+    for (const [material, meshes] of buckets) {
+      if (meshes.length < 2) continue;
+      const instances = new THREE.InstancedMesh(cube, material, meshes.length);
+      instances.castShadow = true;
+      instances.receiveShadow = true;
+      meshes.forEach((mesh, i) => {
+        mesh.updateMatrix();
+        instances.setMatrixAt(i, mesh.matrix);
+        group.remove(mesh);
+      });
+      group.add(instances);
+    }
   }
   function sign(text, x, y, z, w = 5) {
     const canvas = document.createElement('canvas');
@@ -85,6 +108,7 @@ export function createRunScene(scene, camera, models) {
       box(-side * 4.4, 5.4, 4, 0.7, 0.12, 1.1, '#b6e4ea', group, true);
     }
     box(-side * 3.6, 2.3, 0, 0.04, 0.3, 1.3, '#c39c60', group, true);
+    batch(group);
     blocks.push(group);
   }
   const exitRoad = new THREE.Group();
@@ -92,6 +116,7 @@ export function createRunScene(scene, camera, models) {
   box(19, 0.01, -16, 26, 0.02, 36, '#18232e', exitRoad);
   for (const x of [8, 12, 16, 20, 24]) box(x, 0.025, -16, 2, 0.01, 0.12, '#8cb0bb', exitRoad);
   const exitSign = sign('FREIGHT ACCESS / THROUGH ROUTE ↑', 6, 3.5, -60, 7);
+  const streets = createStreetDetails(root, { box, sign, batch });
   const rider = models.rider;
   rider.position.set(0, 0, 3);
   rider.rotation.y = Math.PI / 2;
@@ -126,17 +151,30 @@ export function createRunScene(scene, camera, models) {
     const group = new THREE.Group();
     root.add(group);
     group.position.x = hazard.lane * laneWidth;
-    if (hazard.type === 'van') {
+    if (hazard.type === 'works') {
+      box(0, 0.55, 0, 2.5, 1.1, 2, '#58606a', group);
+      for (const x of [-0.9, 0, 0.9]) box(x, 0.6, 1.03, 0.18, 0.7, 0.03, '#e59f50', group);
+      box(0, -0.18, -2, 3, 0.02, 6, '#39434b', group);
+    } else if (hazard.type === 'van') {
       const car = models.cars[i % models.cars.length].clone(true);
       car.position.set(0, 0, 0);
       car.rotation.set(0, Math.PI / 2, 0);
       group.add(car);
+      for (const x of [-1.4, 1.4]) box(x, -0.18, 0, 0.07, 0.02, 7, '#d7b275', group);
+      for (const z of [4, 5.5, 7]) {
+        box(0, 0.15, z, 0.4, 0.35, 0.4, '#e59f50', group);
+        box(0, 0.33, z, 0.2, 0.1, 0.2, '#d9dfd5', group);
+      }
     } else if (hazard.type === 'rail') {
       box(0, 0.3, 0, 2.7, 0.65, 0.35, '#e59f50', group);
+      box(0, -0.18, -2, 2.8, 0.02, 4, '#39434b', group);
+      box(0.9, 0.2, -3, 0.5, 0.4, 0.7, '#58606a', group);
       for (const x of [-0.9, 0, 0.9]) box(x, 0.3, 0.19, 0.12, 0.5, 0.02, '#14212b', group);
     } else {
       for (const x of [-1.35, 1.35]) box(x, 1.5, 0, 0.12, 3.3, 0.12, '#718b99', group);
       box(0, 1.55, 0, 2.8, 0.3, 0.25, '#e59f50', group);
+      box(0, 3, 0, 2.8, 0.12, 0.12, '#718b99', group);
+      box(1.2, 2.2, 0, 0.2, 1.3, 0.2, '#425f71', group);
     }
     return group;
   });
@@ -177,6 +215,7 @@ export function createRunScene(scene, camera, models) {
     },
     frame(state, reduced, blend = 1) {
       root.visible = true;
+      streets.frame(state.distance);
       rider.position.set(state.x * laneWidth, state.height, 3);
       const carry = skating.frame(state, reduced);
       board.rotation.x = reduced ? 0 : (state.lane - state.x) * 0.12;
