@@ -4,15 +4,16 @@ export const say = (text) => ($('status').textContent = text);
 export function updateOrderView({ mode, toppingCount, bitten = false }) {
   document.body.dataset.mode = mode;
   document.body.dataset.bitten = String(bitten);
+  $('assisted-label').hidden = !['prep', 'baked', 'sliced'].includes(mode);
   $('bite').hidden = mode !== 'sliced';
   $('bite').disabled = bitten;
   $('bite').textContent = bitten ? 'bite taken' : 'take a bite';
   document.body.dataset.toppings = toppingCount;
   $('topping-count').textContent = `${toppingCount} / ${maxToppings}`;
   $('undo').disabled = !toppingCount || mode !== 'prep';
-  const delivering = mode === 'pickup' || mode === 'dispatched';
+  const delivering = ['pickup', 'running', 'dispatched'].includes(mode);
   $('delivery-comment').hidden = !delivering || !bitten;
-  $('primary').disabled = mode === 'baking' || mode === 'pickup';
+  $('primary').disabled = ['baking', 'pickup', 'running'].includes(mode);
   $('dispatch').hidden = !['baked', 'sliced'].includes(mode);
   $('replay').hidden = mode !== 'dispatched';
   document.querySelector('.turn-controls').hidden = delivering;
@@ -52,6 +53,13 @@ export function updateOrderView({ mode, toppingCount, bitten = false }) {
       i === (mode === 'prep' ? 0 : mode === 'baking' ? 1 : 2)
     )
   );
+  if (mode === 'running') {
+    $('panel-title').textContent = 'delivery in progress.';
+    $('panel-copy').textContent = 'Keep moving. Protect the box. Follow the address.';
+    $('primary').textContent = 'on the road';
+    $('scene-instruction').textContent = '';
+    return;
+  }
   if (delivering) {
     $('panel-title').innerHTML = mode === 'pickup' ? 'Kourier pickup.' : 'Pizza delivered.';
     $('panel-copy').textContent =

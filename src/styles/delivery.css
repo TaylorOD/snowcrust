@@ -1,0 +1,109 @@
+#run-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  color: #e8eff3;
+}
+#run-panel[hidden],
+#run-panel [hidden] {
+  display: none;
+}
+#run-panel button {
+  pointer-events: auto;
+  min-height: 44px;
+  padding: 10px 12px;
+  background: #122b3d;
+  border: 1px solid #569cd6;
+  color: white;
+  font: inherit;
+  cursor: pointer;
+}
+#run-panel button:focus-visible {
+  outline: 3px solid #e9ba71;
+  outline-offset: 2px;
+}
+.run-hud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #08131de8;
+  font-size: 12px;
+}
+#run-address {
+  flex: 1 0 100%;
+  color: #e9ba71;
+}
+.run-prompt {
+  pointer-events: auto;
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(85%, 350px);
+  background: #08131df2;
+  padding: 22px;
+  border: 1px solid #569cd6;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.run-prompt h2 {
+  font-size: 22px;
+  color: #e9ba71;
+}
+.run-buttons {
+  position: absolute;
+  bottom: 38px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+#run-hook {
+  background: #254535 !important;
+}
+#run-message {
+  position: absolute;
+  bottom: 6px;
+  left: 12px;
+  margin: 0;
+  font-size: 11px;
+  background: #08131de8;
+  padding: 5px;
+}
+body[data-mode='running'] #scene {
+  touch-action: none;
+  cursor: default;
+}
+body[data-mode='running'] .scene-caption,
+body[data-mode='running'] .stage-top {
+  display: none;
+}
+#assisted-label {
+  display: block;
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 12px 0;
+}
+@media (max-width: 740px) {
+  body[data-mode='running'] #scene {
+    height: min(680px, 85dvh);
+    min-height: 440px;
+  }
+  .run-buttons {
+    gap: 4px;
+    left: 6px;
+    right: 6px;
+  }
+  #run-panel button {
+    padding: 10px 8px;
+    font-size: 11px;
+  }
+  .run-hud {
+    font-size: 11px;
+    gap: 9px;
+  }
+}

@@ -24,6 +24,7 @@ try {
     });
   });
   await import('../tests/browser/browser-check.js');
+  await import('../tests/browser/delivery-check.js');
 } finally {
   server.kill();
 }
