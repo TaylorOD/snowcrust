@@ -32,6 +32,9 @@ try {
     await page.clock.fastForward(10000);
     await expect(page.locator('#order-clock')).toHaveText(time);
     await page.locator('#run-resume').click();
+    const pauseBounds = await page.locator('#run-pause').boundingBox();
+    const soundBounds = await page.locator('#delivery-sound').boundingBox();
+    expect(pauseBounds.x + pauseBounds.width).toBeLessThanOrEqual(soundBounds.x);
     if (name === 'desktop') await page.keyboard.press('ArrowLeft');
     else {
       const client = await page.context().newCDPSession(page);
@@ -53,6 +56,9 @@ try {
     if (name === 'mobile') {
       await page.setViewportSize({ width: 844, height: 390 });
       await page.clock.runFor(100);
+      await page.locator('#run-pause').click();
+      await page.locator('#run-resume').click();
+      await page.clock.runFor(100);
       const hud = await page.locator('.run-hud').boundingBox();
       expect(hud.y).toBeGreaterThanOrEqual(0);
       await page.screenshot({ path: 'artifacts/screenshots/delivery-rotated.png' });
@@ -62,6 +68,7 @@ try {
     await page.locator('[data-run="right"]').click();
     await page.clock.runFor(700);
     await page.locator('#run-pause').click();
+    await expect(page.locator('#run-start-note')).toBeHidden();
     const distance = await page.locator('body').getAttribute('data-run-distance');
     await page.clock.fastForward(5000);
     await expect(page.locator('body')).toHaveAttribute('data-run-distance', distance);

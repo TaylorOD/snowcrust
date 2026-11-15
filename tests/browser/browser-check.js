@@ -68,6 +68,13 @@ try {
   assert.equal(await page.locator('body').getAttribute('data-mode'), 'prep');
   await expect(page.locator('body')).toHaveAttribute('data-bitten', 'false');
   await expect(page.locator('#delivery-comment')).toBeHidden();
+  await page.locator('#special').click();
+  const beforeCancel = await page.locator('body').getAttribute('data-mode');
+  const toppingsBeforeCancel = await page.locator('body').getAttribute('data-toppings');
+  page.once('dialog', (dialog) => dialog.dismiss());
+  await page.locator('#reset').click();
+  await expect(page.locator('body')).toHaveAttribute('data-mode', beforeCancel);
+  await expect(page.locator('body')).toHaveAttribute('data-toppings', toppingsBeforeCancel);
   page.on('dialog', (d) => d.accept());
   await page.locator('#reset').click();
   assert.equal(await page.locator('body').getAttribute('data-toppings'), '0');
@@ -199,6 +206,12 @@ try {
   const ingredientsPage = await checkedPage({ reducedMotion: 'reduce' });
   await ingredientsPage.goto(baseUrl);
   for (const type of [
+    'pepperoni',
+    'mushroom',
+    'basil',
+    'olive',
+    'pineapple',
+    'pepper',
     'cheese',
     'sausage',
     'sauce',
@@ -211,7 +224,7 @@ try {
     await ingredientsPage.locator(`[data-topping="${type}"]`).click();
     await ingredientsPage.locator('#sprinkle').click();
   }
-  assert.equal(await ingredientsPage.locator('body').getAttribute('data-toppings'), '36');
+  assert.equal(await ingredientsPage.locator('body').getAttribute('data-toppings'), '66');
   await ingredientsPage.screenshot({
     path: 'artifacts/screenshots/new-toppings.png',
     fullPage: true
@@ -224,6 +237,10 @@ try {
   assert.ok(
     await ingredientsPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth)
   );
+  for (let i = 0; i < 4; i++) await ingredientsPage.locator('#sprinkle').click();
+  await expect(ingredientsPage.locator('body')).toHaveAttribute('data-toppings', '80');
+  await ingredientsPage.locator('#undo').click();
+  await expect(ingredientsPage.locator('body')).toHaveAttribute('data-toppings', '79');
   await ingredientsPage.close();
 
   for (const [name, width, height] of [
