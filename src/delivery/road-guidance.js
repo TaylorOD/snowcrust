@@ -1,4 +1,4 @@
-import { hazards } from './route.js';
+import { hazards, roadExits } from './route.js';
 import { towPose } from './tow-traffic.js';
 
 // One useful instruction at a time. Damage and exits take priority over hints.
@@ -34,4 +34,21 @@ export function roadGuidance(state) {
   if (next && Math.abs(next.x - state.x) > 0.35)
     return 'tow ahead / move ' + (next.x < state.x ? 'left' : 'right');
   return 'free skating / watch for a bumper';
+}
+
+// The junction remains visible even after a hit or a change of tow car.
+export function roadExitNotice(state) {
+  if (state.failed || state.approaching || state.paused) return null;
+  const exit = roadExits.find(
+    (item) => item.distance >= state.distance - 20 && item.distance - state.distance <= 120
+  );
+  if (!exit) return null;
+  const remaining = Math.max(0, Math.ceil(exit.distance - state.distance));
+  const attached = state.towed && state.traffic[state.towId]?.exit?.distance === exit.distance;
+  return {
+    title: exit.name + (exit.side > 0 ? ' → ' : ' ← ') + remaining + ' m',
+    instruction: attached
+      ? 'release tow / delivery stays straight ↑'
+      : 'keep straight ↑ / this is not your exit'
+  };
 }

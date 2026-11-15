@@ -1,5 +1,5 @@
 import { routeLength, runTimeLimit } from '../delivery/route.js';
-import { roadGuidance } from '../delivery/road-guidance.js';
+import { roadGuidance, roadExitNotice } from '../delivery/road-guidance.js';
 
 // Input belongs to the road surface, never the kitchen.
 export function createDeliveryControls(host, { action, pause, resume, retry }) {
@@ -11,10 +11,11 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
     <div class="run-hud"><span id="run-address"></span>
       <span id="run-distance"></span><span id="run-speed"></span><span id="run-condition"></span><span id="run-clock"></span>
       <button id="run-pause" aria-label="Pause delivery">pause</button></div>
+    <div id="run-exit" hidden><strong id="run-exit-title"></strong><span id="run-exit-action"></span></div>
     <div id="run-prompt" class="run-prompt">
       <h2>your delivery.</h2><p id="run-result" hidden></p><p>90 seconds. three lanes. keep the box intact.</p>
       <p>← → steer · ↑ jump · ↓ duck<br>space to catch or release a tow</p>
-      <p>already hooked. one swipe, one lane. steer while attached. release before your tow takes the wrong exit.</p>
+      <p>already hooked. one swipe, one lane. steer while attached. release before your tow turns. a late release damages the box.</p>
       <p>on a phone, swipe or use the buttons below.</p>
       <label><input type="checkbox" id="run-assist"> slower road / no damage</label><br>
       <button id="run-resume">start skating</button><button id="run-retry" hidden>retry delivery</button>
@@ -141,6 +142,12 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
         $('run-resume').hidden = true;
         $('run-retry').hidden = false;
         $('run-pause').hidden = true;
+      }
+      const exit = roadExitNotice(state);
+      $('run-exit').hidden = !exit;
+      if (exit) {
+        $('run-exit-title').textContent = exit.title;
+        $('run-exit-action').textContent = exit.instruction;
       }
       const message = roadGuidance(state);
       $('run-hook').classList.toggle(

@@ -1,9 +1,9 @@
-import { hazards, laneWidth } from './route.js';
+import { hazards, laneWidth, freightExit, deliveryJunction } from './route.js';
 
 // Cars advance in world metres independently of the rider. Relative positions
 // are derived here so catching a car never reverses its travel.
 export const towCars = [
-  { start: 12, speed: 17, lane: 0, lowProfile: true, exit: { distance: 430, side: 1 } },
+  { start: 12, speed: 17, lane: 0, lowProfile: true, exit: freightExit },
   { start: -25, speed: 19, lane: -1 },
   { start: 45, speed: 15, lane: 1 },
   { start: 85, speed: 18, lane: -1 },
@@ -39,7 +39,7 @@ function roadLane(car, distance) {
 }
 
 // The exit is a real side street at the same world position as the scenery.
-export const freightExit = { distance: 430, side: 1, length: Math.PI * 12 };
+export { freightExit } from './route.js';
 export function trafficLane(car, distance) {
   const exit = car.exit;
   if (!exit || distance < exit.distance) return roadLane(car, distance);
@@ -56,7 +56,7 @@ export function trafficLane(car, distance) {
 export function createTraffic() {
   return towCars.map((car) => ({
     ...car,
-    exit: car.exit ?? { distance: 910, side: -1 },
+    exit: car.exit ?? deliveryJunction,
     distance: car.start,
     x: trafficLane(car, car.start).x,
     velocity: car.speed,

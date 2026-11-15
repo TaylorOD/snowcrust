@@ -363,3 +363,36 @@ body[data-mode='arriving'] main {
   color: #a9ebee;
   font-weight: bold;
 }
+
+#run-exit {
+  position: absolute;
+  top: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 32px);
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border: 2px solid #e9ba71;
+  background: #172331ed;
+  color: #f2c785;
+  text-align: center;
+}
+#run-exit strong,
+#run-exit span {
+  display: block;
+}
+#run-exit strong {
+  font-size: 17px;
+}
+#run-exit span {
+  margin-top: 6px;
+  color: #c2ecc7;
+  font-size: 12px;
+}
+@media (max-height: 500px) and (orientation: landscape) {
+  #run-exit {
+    top: 78px;
+    padding: 5px 10px;
+  }
+}
