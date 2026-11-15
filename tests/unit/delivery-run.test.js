@@ -162,3 +162,36 @@ test('carving and jumping preserve the tow until an intentional release', () => 
   run.action('hook');
   assert.equal(run.state.towed, false);
 });
+
+test('the first tow warns for at least three seconds before its side street', () => {
+  const run = createDeliveryRun();
+  let warnedAt = null;
+  while (run.state.towed && run.state.elapsed < 60) {
+    run.update(1 / 120);
+    if (warnedAt === null && /turning right/.test(run.state.message)) warnedAt = run.state.elapsed;
+  }
+  assert.ok(warnedAt > 20);
+  assert.ok(run.state.elapsed - warnedAt >= 3);
+  assert.match(run.state.message, /side street/);
+});
+
+test('several cars are visible at dispatch', () => {
+  const run = createDeliveryRun();
+  assert.ok(
+    run.state.traffic.filter((car) => towPose(car, run.state).visible && car.distance > 0).length >=
+      4
+  );
+});
+
+test('the side street turn stays inside its cleared opening', () => {
+  const car = createTraffic()[0];
+  for (let d = 430; d <= 480; d += 0.1) {
+    car.distance = d;
+    car.x = trafficLane(car, d).x;
+    const pose = towPose(car, { distance: 400 });
+    if (pose.x > 6 && pose.x < 32) {
+      assert.ok(pose.distance >= 428 && pose.distance <= 464);
+      assert.ok(pose.yaw >= 0 && pose.yaw <= Math.PI / 2);
+    }
+  }
+});

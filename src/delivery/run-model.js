@@ -87,6 +87,14 @@ export function createDeliveryRun({ assisted = false } = {}) {
     const before = state.distance;
     state.distance = Math.min(routeLength, before + state.speed * dt);
     state.targetId = availableTow(state);
+    if (state.towed && car.exit && car.distance >= car.exit.distance - 56) {
+      state.message = 'tow turning right / release to stay on route';
+      if (car.distance >= car.exit.distance - 12) {
+        state.towed = false;
+        state.lean = 0;
+        state.message = 'tow took the side street / catch another car';
+      }
+    }
     for (const hazard of hazards) {
       if (passed.has(hazard.id) || hazard.distance > state.distance + 1.5) continue;
       passed.add(hazard.id);
