@@ -271,6 +271,7 @@ export function createRunScene(scene, camera, models) {
       const car = selected >= 0 ? towCars[selected] : null;
       target.visible = Boolean(car) && !state.towed;
       if (car) target.position.set(car.position.x, 0.65, car.position.z + 2.2);
+      target.scale.setScalar(reduced ? 1 : 1 + Math.sin(state.elapsed * 4) * 0.12);
       cable.visible = state.towed && Boolean(car);
       const points = cableGeometry.attributes.position;
       skating.launcher.localToWorld(hand.set(0.2, 0, 0));

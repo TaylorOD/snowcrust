@@ -29,6 +29,10 @@ export function createDeliverySession({
     ending = null,
     practice = false,
     dispatchElapsed = 0;
+  window.addEventListener('resize', () => {
+    if (run || ending)
+      requestAnimationFrame(() => host.scrollIntoView({ block: 'start', behavior: 'instant' }));
+  });
   const handoff = document.createElement('div');
   handoff.className = 'handoff-controls';
   handoff.hidden = true;

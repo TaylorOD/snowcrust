@@ -335,3 +335,20 @@ body[data-mode='arriving'] main {
   background: #122b3d;
   border-color: #569cd6;
 }
+
+#run-hook {
+  min-width: 104px;
+}
+#run-hook.tow-ready {
+  border-color: #b7e49e;
+  box-shadow: 0 0 0 2px #8ab57555;
+}
+#run-panel button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+#run-message {
+  right: 12px;
+  width: fit-content;
+  max-width: calc(100% - 24px);
+}

@@ -1,3 +1,5 @@
+import { roadGuidance } from '../delivery/road-guidance.js';
+
 // Input belongs to the road surface, never the kitchen.
 export function createDeliveryControls(host, { action, pause, resume }) {
   const panel = document.createElement('section');
@@ -108,13 +110,14 @@ export function createDeliveryControls(host, { action, pause, resume }) {
         state.approaching ||
         (!state.towed &&
           (state.targetId < 0 || state.jump > 0 || Math.abs(state.x - state.lane) >= 0.2));
-      if (!state.towed && state.targetId < 0) $('run-hook').textContent = 'no tow in reach';
+      if (!state.towed && state.targetId < 0) $('run-hook').textContent = 'out of reach';
       if (state.approaching) $('run-hook').textContent = 'arriving';
       panel.querySelectorAll('[data-run]:not(#run-hook)').forEach((button) => {
         button.disabled = state.approaching;
       });
-      if ($('run-message').textContent !== state.message)
-        $('run-message').textContent = state.message;
+      const message = roadGuidance(state);
+      $('run-hook').classList.toggle('tow-ready', !state.towed && !$('run-hook').disabled);
+      if ($('run-message').textContent !== message) $('run-message').textContent = message;
     }
   };
 }
