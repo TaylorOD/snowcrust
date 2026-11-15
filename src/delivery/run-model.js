@@ -1,6 +1,12 @@
 import { resolveTrafficContact } from './traffic-contact.js';
 import { hazards, routeLength, approachStart, laneWidth, runTimeLimit } from './route.js';
-import { createTraffic, advanceTraffic, towPose, availableTow } from './tow-traffic.js';
+import {
+  createTraffic,
+  advanceTraffic,
+  towPose,
+  availableTow,
+  trafficSpeed
+} from './tow-traffic.js';
 
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 const laneDuration = 0.18;
@@ -19,7 +25,7 @@ export function createDeliveryRun({ assisted = false, startTowed = true } = {}) 
     height: 0,
     crouch: false,
     condition: 100,
-    speed: startTowed ? 17 : 8,
+    speed: startTowed ? trafficSpeed : 14,
     towed: startTowed,
     towId: 0,
     targetId: 0,
@@ -149,7 +155,7 @@ export function createDeliveryRun({ assisted = false, startTowed = true } = {}) 
         ? 4
         : state.towed
           ? Math.max(0, car.velocity + clamp((gap - 11) * 2, -4, 5))
-          : 8;
+          : 14;
     // Slow rolling resistance preserves useful momentum between two catches.
     const braking = state.towed || state.approaching || state.protection ? 16 : 1.8;
     state.speed += clamp(desired * scale - state.speed, -braking * dt, 14 * dt);

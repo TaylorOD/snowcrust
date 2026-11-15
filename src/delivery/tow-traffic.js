@@ -2,23 +2,19 @@ import { hazards, laneWidth, freightExit, deliveryJunction } from './route.js';
 
 // Cars advance in world metres independently of the rider. Relative positions
 // are derived here so catching a car never reverses its travel.
+export const trafficSpeed = 20;
+// A paced stream keeps a safe gap through merges without turning the run
+// into a queue behind a slower car. Every model shares the same road speed.
 export const towCars = [
-  { start: 12, speed: 17, lane: 0, lowProfile: true, exit: freightExit },
-  { start: -25, speed: 19, lane: -1 },
-  { start: 45, speed: 15, lane: 1 },
-  { start: 85, speed: 18, lane: -1 },
-  { start: -100, speed: 20, lane: 1 },
-  { start: 125, speed: 17, lane: 0 },
-  { start: -95, speed: 17, lane: 0 },
-  { start: 170, speed: 15, lane: 1 },
-  { start: -180, speed: 19, lane: -1 },
-  { start: 210, speed: 18, lane: -1 },
-  { start: -235, speed: 20, lane: 1 },
-  { start: -210, speed: 17, lane: 0 },
-  { start: -310, speed: 19, lane: -1 },
-  { start: -355, speed: 20, lane: 1 },
-  { start: -340, speed: 17, lane: 0 }
-];
+  12, 48, 84, 120, -24, -60, -96, -132, -168, -204, -240, -276, -312, -348, -384
+].map((start, index) => ({
+  start,
+  speed: trafficSpeed,
+  lane: [0, 1, -1][index % 3],
+  lowProfile: index === 0,
+  exit: index === 0 ? freightExit : deliveryJunction
+}));
+
 // Choose an adjacent clear lane before each obstruction. The lane change
 // starts early enough that both the car and its trailing rider clear it.
 function roadLane(car, distance) {
@@ -67,6 +63,16 @@ export function createTraffic() {
 // Update front to back. Following cars brake before occupied space, including
 // lane changes, instead of passing through another vehicle.
 export function advanceTraffic(traffic, seconds, rider = null) {
+  if (rider && rider.distance < deliveryJunction.distance - 80) {
+    for (let index = 0; index < traffic.length; index++) {
+      const car = traffic[index];
+      const pose = towPose(car, rider);
+      if ((rider.towed && rider.towId === index) || pose.gap >= -80) continue;
+      car.distance = Math.min(rider.distance - 90, ...traffic.map((other) => other.distance)) - 36;
+      car.exit = deliveryJunction;
+      car.x = trafficLane(car, car.distance).x;
+    }
+  }
   const ordered = [...traffic].sort((a, b) => b.distance - a.distance);
   for (const car of ordered) {
     const before = car.distance;

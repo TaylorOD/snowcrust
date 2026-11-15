@@ -168,10 +168,6 @@ export function createRunScene(scene, camera, models) {
       car.rotation.set(0, Math.PI / 2, 0);
       group.add(car);
       for (const x of [-1.4, 1.4]) box(x, -0.18, 0, 0.07, 0.02, 7, '#d7b275', group);
-      for (const z of [4, 5.5, 7]) {
-        box(0, 0.15, z, 0.4, 0.35, 0.4, '#e59f50', group);
-        box(0, 0.33, z, 0.2, 0.1, 0.2, '#d9dfd5', group);
-      }
     } else if (hazard.type === 'rail') {
       box(0, 0.3, 0, 2.7, 0.65, 0.35, '#e59f50', group);
       box(0, -0.18, -2, 2.8, 0.02, 4, '#39434b', group);
