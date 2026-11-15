@@ -47,6 +47,15 @@ try {
     await page
       .locator('#scene')
       .screenshot({ path: 'artifacts/screenshots/delivery-' + name + '.png' });
+    if (name === 'mobile') {
+      await page.setViewportSize({ width: 844, height: 390 });
+      await page.clock.runFor(100);
+      const hud = await page.locator('.run-hud').boundingBox();
+      expect(hud.y).toBeGreaterThanOrEqual(0);
+      await page.screenshot({ path: 'artifacts/screenshots/delivery-rotated.png' });
+      await page.setViewportSize({ width, height });
+      await page.clock.runFor(100);
+    }
     await page.locator('[data-run="right"]').click();
     await page.clock.runFor(700);
     await page.locator('#run-pause').click();
