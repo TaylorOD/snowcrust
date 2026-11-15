@@ -267,3 +267,13 @@ test('rapid steering and merging traffic keep a clear rider footprint', () => {
     assert.equal(run.state.arrived, true);
   }
 });
+
+test('a stopped tow car cannot pull the rider backwards', () => {
+  const run = createDeliveryRun();
+  run.state.speed = 0;
+  Object.assign(run.state.traffic[0], { speed: 0, velocity: 0, distance: 8 });
+  advance(run, 1);
+  assert.equal(run.state.distance, 0);
+  assert.equal(run.state.speed, 0);
+  assert.equal(run.state.towed, true);
+});

@@ -114,7 +114,7 @@ export function createDeliveryRun({ assisted = false } = {}) {
       : state.protection > 0.8
         ? 5
         : state.towed
-          ? car.velocity + clamp((gap - 10) * 1.5, -3, 3)
+          ? Math.max(0, car.velocity + clamp((gap - 10) * 1.5, -3, 3))
           : 9;
     // Keep momentum on release and take up the line gradually on a catch.
     state.speed += clamp(desired * scale - state.speed, -6 * dt, 4 * dt);
