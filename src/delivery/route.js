@@ -20,7 +20,10 @@ export function destinationFor(customer) {
     return {
       kind: 'mews',
       name: 'The Mews at Windsor Heights',
-      address: 'gate six / guard window'
+      address:
+        customer.name === 'Rae Switch'
+          ? 'signal cabinet nine / service lane'
+          : 'gate six / guard window'
     };
   if (customer.neighborhood.includes('LAX'))
     return { kind: 'motel', name: 'LAX motel district', address: 'room 19 / courtyard' };

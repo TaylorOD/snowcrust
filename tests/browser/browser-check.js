@@ -1,3 +1,4 @@
+import { finishHandoff } from './finish-handoff.js';
 import { sceneFrame } from './browser-scene-frame.js';
 import { chromium, expect } from '@playwright/test';
 import { checkCustomerOrder } from './browser-order-check.js';
@@ -60,6 +61,7 @@ try {
   await page.waitForTimeout(1600);
   await page.screenshot({ path: 'artifacts/screenshots/departure.png', fullPage: true });
   await page.waitForTimeout(2900);
+  await finishHandoff(page, false);
   assert.equal(await page.locator('body').getAttribute('data-mode'), 'dispatched');
   assert.ok(await page.locator('#replay').isVisible());
   await page.locator('#primary').click();
@@ -105,6 +107,7 @@ try {
   await reduced.clock.fastForward(1000);
   await reduced.screenshot({ path: 'artifacts/screenshots/courier-mobile.png', fullPage: true });
   await reduced.clock.fastForward(9000);
+  await finishHandoff(reduced, true);
   assert.equal(await reduced.locator('body').getAttribute('data-mode'), 'dispatched');
   await reduced.locator('#replay').click();
   assert.equal(await reduced.locator('body').getAttribute('data-mode'), 'pickup');
@@ -136,6 +139,7 @@ try {
   await phases.clock.fastForward(2200);
   assert.equal(await phases.locator('body').getAttribute('data-courier-phase'), 'ride');
   await phases.clock.fastForward(6000);
+  await finishHandoff(phases, true);
   assert.equal(await phases.locator('body').getAttribute('data-mode'), 'dispatched');
   await phases.locator('#primary').click();
   await phases.locator('#primary').click();

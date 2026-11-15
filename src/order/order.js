@@ -30,9 +30,18 @@ export function startOrder({
     courier,
     ticket,
     reduced: reduceMotion,
+    getPizza: () => pizza,
+    onArrive(result) {
+      mode = 'arriving';
+      courier.reset();
+      city.setVisible(false);
+      ticket.finish(toppings, bitten, result.condition, result.assisted);
+      update();
+      $('order-receipt').hidden = true;
+    },
     onFinish(result) {
       mode = 'dispatched';
-      ticket.finish(toppings, bitten, result.condition);
+      ticket.finish(toppings, bitten, result.condition, result.assisted);
       update();
       say('Delivery confirmed. Customer receipt is in.');
     }
@@ -265,9 +274,7 @@ export function startOrder({
       }
       if (delivery.done) {
         if ($('assisted-delivery').checked || ticket.result) {
-          mode = 'dispatched';
-          ticket.finish(toppings, bitten, 100, true);
-          update();
+          deliverySession.arrive(ticket.result ?? { condition: 100, assisted: true });
         } else {
           mode = 'running';
           courier.reset();
@@ -277,7 +284,7 @@ export function startOrder({
         }
       }
     }
-    if (mode === 'running') deliverySession.frame(elapsed);
+    if (['running', 'arriving', 'dispatched'].includes(mode)) deliverySession.frame(elapsed);
     pizza.rotation.y +=
       (rotationTarget - pizza.rotation.y) * (reduceMotion ? 1 : Math.min(dt * 12, 1));
     for (const topping of toppings) {

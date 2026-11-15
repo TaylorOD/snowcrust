@@ -11,9 +11,9 @@ export function updateOrderView({ mode, toppingCount, bitten = false }) {
   document.body.dataset.toppings = toppingCount;
   $('topping-count').textContent = `${toppingCount} / ${maxToppings}`;
   $('undo').disabled = !toppingCount || mode !== 'prep';
-  const delivering = ['pickup', 'running', 'dispatched'].includes(mode);
+  const delivering = ['pickup', 'running', 'arriving', 'dispatched'].includes(mode);
   $('delivery-comment').hidden = !delivering || !bitten;
-  $('primary').disabled = ['baking', 'pickup', 'running'].includes(mode);
+  $('primary').disabled = ['baking', 'pickup', 'running', 'arriving'].includes(mode);
   $('dispatch').hidden = !['baked', 'sliced'].includes(mode);
   $('replay').hidden = mode !== 'dispatched';
   document.querySelector('.turn-controls').hidden = delivering;
@@ -53,6 +53,15 @@ export function updateOrderView({ mode, toppingCount, bitten = false }) {
       i === (mode === 'prep' ? 0 : mode === 'baking' ? 1 : 2)
     )
   );
+  if (mode === 'arriving') {
+    $('panel-title').textContent = 'at the address.';
+    $('panel-copy').textContent = 'Hand over the box. The customer is waiting.';
+    $('primary').textContent = 'delivery handoff';
+    $('scene-label').textContent = 'ARRIVAL';
+    $('oven-label').textContent = 'ADDRESS CONFIRMED';
+    $('scene-instruction').textContent = '';
+    return;
+  }
   if (mode === 'running') {
     $('panel-title').textContent = 'delivery in progress.';
     $('panel-copy').textContent = 'Keep moving. Protect the box. Follow the address.';

@@ -1,3 +1,4 @@
+import { finishHandoff } from './finish-handoff.js';
 import { chromium, expect } from '@playwright/test';
 
 const browser = await chromium.launch({
@@ -38,8 +39,18 @@ try {
     await expect(page.locator('body')).toHaveAttribute('data-run-distance', distance);
     await page.locator('#run-resume').click();
     for (let i = 0; i < 280; i++) await page.clock.fastForward(250);
-    await expect(page.locator('body')).toHaveAttribute('data-mode', 'dispatched');
+    await finishHandoff(page);
+    await page
+      .locator('#scene')
+      .screenshot({ path: 'artifacts/screenshots/handoff-' + name + '.png' });
     await expect(page.locator('#receipt-condition')).toContainText('pizza condition');
+    const receipt = await page.locator('#receipt-condition').textContent();
+    const recordedTime = await page.locator('#receipt-time').textContent();
+    await page.locator('#replay').click();
+    await page.clock.fastForward(5400);
+    await finishHandoff(page);
+    await expect(page.locator('#receipt-condition')).toHaveText(receipt);
+    await expect(page.locator('#receipt-time')).toHaveText(recordedTime);
     await page.locator('#reset').click();
     await expect(page.locator('body')).toHaveAttribute('data-mode', 'prep');
     await expect(page.locator('#run-panel')).toBeHidden();
