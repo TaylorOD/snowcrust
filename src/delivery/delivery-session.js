@@ -79,7 +79,8 @@ export function createDeliverySession({
         Math.ceil(result.elapsed) +
         ' seconds total. original receipt kept.'
       : '';
-    host.scrollIntoView({ block: 'center', behavior: 'instant' });
+    // The order controller updates the page layout after this callback.
+    requestAnimationFrame(() => host.scrollIntoView({ block: 'center', behavior: 'instant' }));
   }
   return {
     arrive,
@@ -99,7 +100,8 @@ export function createDeliverySession({
       road.show(destination);
       pause(!tutorialSeen || practice, !tutorialSeen);
       tutorialSeen = true;
-      host.scrollIntoView({ block: 'center', behavior: 'instant' });
+      // The order controller updates the page layout after this callback.
+      requestAnimationFrame(() => host.scrollIntoView({ block: 'center', behavior: 'instant' }));
     },
     reset() {
       audio.reset();
