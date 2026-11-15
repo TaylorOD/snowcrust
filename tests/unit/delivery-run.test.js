@@ -91,13 +91,20 @@ test('failure freezes the run and ignores further actions', () => {
   advance(run, 3);
   assert.deepEqual(run.state, snapshot);
 });
-test('holding an exiting tow fails instead of automatically saving the player', () => {
+test('a missed exit shows the turn then cuts the line without ending the delivery', () => {
   const run = createDeliveryRun();
-  Object.assign(run.state, { towed: true, distance: 405, lane: 1, x: 1 });
+  Object.assign(run.state, { towed: true, distance: 410, lane: 0, x: 0 });
   Object.assign(run.state.traffic[0], { distance: 423 });
   run.update(1 / 120);
-  assert.equal(run.state.failed, true);
-  assert.match(run.state.failure, /wrong exit/);
+  assert.equal(run.state.failed, false);
+  assert.equal(run.state.towed, true);
+  Object.assign(run.state, { distance: 437 });
+  Object.assign(run.state.traffic[0], { distance: 449 });
+  run.update(1 / 120);
+  assert.equal(run.state.failed, false);
+  assert.equal(run.state.towed, false);
+  assert.equal(run.state.condition, 85);
+  assert.match(run.state.message, /late release/);
 });
 test('jump and duck each clear their own obstacle', () => {
   for (const [distance, action] of [

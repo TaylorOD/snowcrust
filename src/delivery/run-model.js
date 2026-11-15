@@ -166,9 +166,12 @@ export function createDeliveryRun({ assisted = false, startTowed = true } = {}) 
     state.targetId = availableTow(state);
     if (state.towed && car.exit && car.distance >= car.exit.distance - 62) {
       message('tow turning ' + (car.exit.side > 0 ? 'right' : 'left') + ' / release now', 0.2);
-      if (car.distance >= car.exit.distance - 8) {
+      if (car.distance >= car.exit.distance + 18) {
         if (state.assisted) state.towed = false;
-        else fail('wrong exit / release before the car turns');
+        else {
+          impact(15, 'late release / line cut / keep straight');
+          state.towed = false;
+        }
       }
     }
     for (const hazard of hazards) {

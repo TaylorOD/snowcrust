@@ -2,7 +2,7 @@ import { frameRoadCamera } from './road-camera.js';
 import { createStreetDetails } from './street-details.js';
 import { createSkatingMotion } from './skating-motion.js';
 import * as THREE from '../../vendor/three.module.js';
-import { hazards, laneWidth, routeLength } from './route.js';
+import { hazards, laneWidth, routeLength, deliveryJunction } from './route.js';
 import { towCars as traffic, towPose, freightExit } from './tow-traffic.js';
 
 // The road moves beneath a stationary rider. All objects are allocated once.
@@ -116,7 +116,13 @@ export function createRunScene(scene, camera, models) {
   root.add(exitRoad);
   box(19, 0.01, -16, 26, 0.02, 36, '#18232e', exitRoad);
   for (const x of [8, 12, 16, 20, 24]) box(x, 0.025, -16, 2, 0.01, 0.12, '#8cb0bb', exitRoad);
-  const exitSign = sign('FREIGHT ACCESS / THROUGH ROUTE ↑', 6, 3.5, -60, 7);
+  const exitSign = sign('FREIGHT EXIT →', 4.5, 4.5, -60, 9);
+  const straightSign = sign('DELIVERY ↑', -2.5, 5.9, -60, 6);
+  const finalExitSign = sign('← TRAFFIC / DELIVERY ↑', 0, 4.8, -60, 10);
+  for (const z of [-8, -16, -24]) {
+    const arrow = sign('→', 7, 1.3, z, 3);
+    exitRoad.add(arrow);
+  }
   const streets = createStreetDetails(root, { box, sign, batch });
   const rider = models.rider;
   rider.position.set(0, 0, 3);
@@ -169,7 +175,6 @@ export function createRunScene(scene, camera, models) {
     } else if (hazard.type === 'rail') {
       box(0, 0.3, 0, 2.7, 0.65, 0.35, '#e59f50', group);
       box(0, -0.18, -2, 2.8, 0.02, 4, '#39434b', group);
-      box(0.9, 0.2, -3, 0.5, 0.4, 0.7, '#58606a', group);
       for (const x of [-0.9, 0, 0.9]) box(x, 0.3, 0.19, 0.12, 0.5, 0.02, '#14212b', group);
     } else {
       for (const x of [-1.35, 1.35]) box(x, 1.5, 0, 0.12, 3.3, 0.12, '#718b99', group);
@@ -253,7 +258,11 @@ export function createRunScene(scene, camera, models) {
           );
       });
       exitRoad.position.z = 3 - (freightExit.distance - state.distance);
-      exitSign.position.z = exitRoad.position.z + 10;
+      exitSign.position.z = exitRoad.position.z - 14;
+      straightSign.position.z = exitSign.position.z;
+      exitSign.visible = straightSign.visible = exitSign.position.z < -3;
+      finalExitSign.position.z = 3 - (deliveryJunction.distance - state.distance) - 15;
+      finalExitSign.visible = finalExitSign.position.z < -3;
       obstacles.forEach((object, i) => {
         object.position.z = 3 - (hazards[i].distance - state.distance);
         object.visible = object.position.z > -65 && object.position.z < 8;
@@ -286,7 +295,7 @@ export function createRunScene(scene, camera, models) {
       }
       points.needsUpdate = true;
       cableGeometry.computeBoundingSphere();
-      lastJunction.position.z = 3 - (routeLength - 30 - state.distance);
+      lastJunction.position.z = 3 - (deliveryJunction.distance - state.distance);
       billboard.position.z = -30 + (state.distance % 90);
       billboard.visible = state.distance < routeLength - 60;
       frameRoadCamera(camera, state, reduced, position, aim);
