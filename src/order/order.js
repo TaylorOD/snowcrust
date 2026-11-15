@@ -280,12 +280,9 @@ export function startOrder({
     if (mode === 'pickup') {
       const pickupSeconds = (now - courierStarted) / 1000;
       const interactive = !$('assisted-delivery').checked && !ticket.result;
-      // Hand control over before the cinematic fires its automatic tow.
-      const delivery = courier.frame(
-        interactive ? Math.min(pickupSeconds, 3.1) : pickupSeconds,
-        reduceMotion && !interactive
-      );
-      if (interactive && pickupSeconds >= 3.1) delivery.done = true;
+      // Finish the pickup, hook flight and pull before entering the road.
+      const delivery = courier.frame(pickupSeconds, reduceMotion && !interactive);
+      frameCamera(true, reduceMotion ? 0 : Math.max(0, delivery.x + 1));
       if (delivery.phase !== courierPhase) {
         courierPhase = delivery.phase;
         document.body.dataset.courierPhase = courierPhase;

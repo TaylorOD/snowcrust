@@ -37,15 +37,15 @@ export function createScene(host) {
   scene.add(fireLight);
 
   let deliveringNow = false;
-  function frameCamera(delivering) {
+  function frameCamera(delivering, followX = 0) {
     deliveringNow = delivering;
     fireLight.visible = !delivering;
     const mobile = host.clientWidth < 500;
     camera.fov = mobile ? 43 : 34;
     camera.updateProjectionMatrix();
     if (delivering) {
-      camera.position.set(...(mobile ? [1, 7, 17] : [3, 9, 21]));
-      camera.lookAt(...(mobile ? [-3, 1.5, 3] : [-3, 2, 1]));
+      camera.position.set(...(mobile ? [1 + followX, 7, 17] : [3 + followX, 9, 21]));
+      camera.lookAt(...(mobile ? [-3 + followX, 1.5, 3] : [-3 + followX, 2, 1]));
     } else {
       camera.position.set(6.8, 9.7, 11.7);
       camera.lookAt(0, 0.1, -0.5);

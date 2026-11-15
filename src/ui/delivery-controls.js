@@ -14,7 +14,7 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
     <div id="run-prompt" class="run-prompt">
       <h2>your delivery.</h2><p id="run-result" hidden></p><p>90 seconds. three lanes. keep the box intact.</p>
       <p>← → steer · ↑ jump · ↓ duck<br>space to catch or release a tow</p>
-      <p>one swipe, one lane. steer while attached. release before your tow takes the wrong exit.</p>
+      <p>already hooked. one swipe, one lane. steer while attached. release before your tow takes the wrong exit.</p>
       <p>on a phone, swipe or use the buttons below.</p>
       <label><input type="checkbox" id="run-assist"> slower road / no damage</label><br>
       <button id="run-resume">start skating</button><button id="run-retry" hidden>retry delivery</button>

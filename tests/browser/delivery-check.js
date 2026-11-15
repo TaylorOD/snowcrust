@@ -27,6 +27,7 @@ try {
     await page.locator('#dispatch').click();
     await page.clock.fastForward(5400);
     await expect(page.locator('body')).toHaveAttribute('data-mode', 'running');
+    await expect(page.locator('#run-hook')).toHaveText('release tow');
     const time = await page.locator('#order-clock').textContent();
     await page.clock.fastForward(10000);
     await expect(page.locator('#order-clock')).toHaveText(time);
