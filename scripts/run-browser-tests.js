@@ -23,10 +23,12 @@ try {
       reject(new Error(`Preview server exited: ${code}`));
     });
   });
-  await import('../tests/browser/browser-check.js');
-  await import('../tests/browser/delivery-check.js');
-  await import('../tests/browser/arrival-check.js');
-  await import('../tests/browser/audio-check.js');
+  const suites = ['browser', 'delivery', 'arrival', 'audio'];
+  const requested = process.argv[2];
+  if (requested && !suites.includes(requested))
+    throw new Error('Unknown browser suite: ' + requested);
+  for (const suite of requested ? [requested] : suites)
+    await import('../tests/browser/' + suite + '-check.js');
 } finally {
   server.kill();
 }

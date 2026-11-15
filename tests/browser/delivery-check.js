@@ -10,6 +10,7 @@ try {
     ['desktop', 1440, 1050],
     ['mobile', 390, 844]
   ]) {
+    if (process.env.TEST_DEVICE && process.env.TEST_DEVICE !== name) continue;
     const page = await browser.newPage({
       viewport: { width, height },
       reducedMotion: 'reduce',
