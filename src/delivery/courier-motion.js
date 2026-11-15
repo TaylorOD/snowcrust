@@ -57,6 +57,6 @@ export function courierPose(seconds, reduced = false) {
     handZ:
       t < 1.65
         ? mix(0.4, -1.25, smooth((t - 1.1) / 0.55))
-        : mix(-1.25, 0.55, smooth((t - 1.65) / 0.6))
+        : mix(-1.25, 0.72, smooth((t - 1.65) / 0.6))
   };
 }

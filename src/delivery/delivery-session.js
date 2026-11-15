@@ -22,7 +22,7 @@ export function createDeliverySession({
   let tutorialSeen = false;
   const audio = createDeliveryAudio(host);
   const models = courier.models();
-  const arrival = createArrivalScene(scene, camera, models.rider);
+  const arrival = createArrivalScene(scene, camera, models.rider, models.parcel);
   const road = createRunScene(scene, camera, models);
   let run = null,
     transition = 0,

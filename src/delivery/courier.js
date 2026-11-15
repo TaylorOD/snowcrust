@@ -1,3 +1,4 @@
+import { createCargoBox } from './cargo-box.js';
 import { createTrafficVehicles } from './traffic-vehicles.js';
 import * as THREE from '../../vendor/three.module.js';
 import {
@@ -345,19 +346,20 @@ export function createCourier(scene) {
   launcher.add(reel);
   box(launcher, 0.04, 0.08, 0.09, 0.12, 0.03, 0.02, cyan);
 
-  const parcel = new THREE.Group();
+  const parcel = createCargoBox(THREE);
   root.add(parcel);
-  box(parcel, 0, 0, 0, 0.92, 0.13, 0.92, material('#bbae85'));
-  box(parcel, 0, -0.06, 0, 0.94, 0.04, 0.94, trim);
-  const logo = label(parcel, 'C0saN0stra', 0.75, 0.19, 0, 0.072, 0, '#ac4439', '#bbae85');
+  const logo = label(
+    parcel.getObjectByName('cargo-lid'),
+    'C0saN0stra',
+    0.7,
+    0.16,
+    0,
+    0.018,
+    0.5,
+    '#ac4439',
+    '#bbae85'
+  );
   logo.rotation.x = -Math.PI / 2;
-  box(parcel, 0, 0.075, 0, 0.045, 0.009, 0.95, bagMat);
-  // The address travels in the box. A recessed status panel leaves the lid clear.
-  box(parcel, 0.28, 0.079, -0.29, 0.24, 0.012, 0.19, dark);
-  for (let i = 0; i < 5; i++) box(parcel, 0.2 + i * 0.035, 0.088, -0.29, 0.012, 0.008, 0.12, white);
-  box(parcel, 0.41, 0.08, -0.29, 0.04, 0.015, 0.12, cyan);
-  for (const x of [-0.35, 0.35])
-    for (let i = 0; i < 3; i++) box(parcel, x, 0, -0.18 + i * 0.18, 0.035, 0.025, 0.04, dark);
   const cableGeometry = new THREE.BufferGeometry().setFromPoints(
     Array.from({ length: 13 }, () => new THREE.Vector3())
   );
@@ -415,7 +417,8 @@ export function createCourier(scene) {
     legs[3](frontKnee, [0.45, 0.42, 0]);
     knees[0].position.set(...backKnee);
     knees[1].position.set(...frontKnee);
-    const boxHand = [0.4, 1.16 - crouch * 0.3, pose.handZ];
+    const pickupArc = Math.sin(Math.PI * clamp((t - 1.65) / 0.6, 0, 1));
+    const boxHand = [0.4 + pickupArc * 0.9, 1.16 - crouch * 0.3, pose.handZ];
     const aimHand = [0.62 + fire * 0.12, 1.05 - crouch * 0.5, -0.25];
     const boxElbow = [0.02, 1.02 - crouch, 0.4],
       aimElbow = [0.34, 1.15 - crouch, -0.32];

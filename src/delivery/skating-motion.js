@@ -1,3 +1,4 @@
+import { carryGrip } from './cargo-box.js';
 // Animate the existing articulated model. Joint endpoints stay connected and
 // feet stay on the board except for the free skating push.
 export function createSkatingMotion(rider) {
@@ -76,8 +77,8 @@ export function createSkatingMotion(rider) {
         ['left', 0.3],
         ['right', -0.25]
       ]) {
-        const elbow = [0.2, 1.02 - bend, z];
-        const hand = [side === 'right' ? 0.72 : 0.4, 1.1 - bend * 0.5, z];
+        const elbow = [0.2, 1.02 - bend, side === 'left' ? 0.55 : z];
+        const hand = side === 'left' ? carryGrip(bend) : [0.72, 1.1 - bend * 0.5, z];
         limb(side + '-upper-arm', [lean, 1.4 - bend, z], elbow, 0.085);
         limb(side + '-forearm', elbow, hand, 0.07);
         parts[side + '-elbow'].position.set(...elbow);
@@ -89,7 +90,8 @@ export function createSkatingMotion(rider) {
         : state.jump
           ? Math.sin((state.jump / 0.91) * Math.PI * 2) * 0.1
           : 0;
-      return [0.35, 1.18 - bend * 0.5, 0.4];
+      const grip = carryGrip(bend);
+      return [grip[0], grip[1] + 0.04, grip[2]];
     }
   };
 }
