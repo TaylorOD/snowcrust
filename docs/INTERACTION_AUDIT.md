@@ -164,6 +164,6 @@ keyboard aliases, held key suppression and background tab pause are present in t
 
 the visual review did not show the earlier box through torso problem in the sampled pickup, road and handoff poses. it cannot prove that every possible pose is free of clipping. mathematical clearance tests cover the modeled grip and cargo positions.
 
-there is no restart button during an active healthy run. pause offers resume and the slower road option. retry appears after failure, and reset returns at the door. that is usable, but a pause menu restart would make experimentation easier.
+pause now offers restart delivery. it keeps the same pizza and elapsed order time, restores the road and cargo, and preserves assisted mode. desktop and phone browser checks cover restart followed by failure, retry and handoff. a separate landscape check confirms assisted mode survives restart. retry still appears after failure, and reset returns at the door.
 
 this pass fixes the reported rules and presentation failures. it does not establish the polish of a commercial runner or finish the device testing. the [spec](DELIVERY_SPEC.md) is the standard for the next review too.
