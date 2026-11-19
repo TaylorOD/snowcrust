@@ -59,8 +59,9 @@ export function createDeliverySession({
   }
   const controls = createDeliveryControls(host, {
     retry: (assisted) => {
-      run = createDeliveryRun({ assisted });
+      run = createDeliveryRun({ assisted: assisted || run?.state.assisted });
       controls.show((practice ? 'practice / ' : '') + destinationFor(ticket.customer).name);
+      controls.assisted(run.state.assisted);
       audio.reset();
       pause(false);
     },

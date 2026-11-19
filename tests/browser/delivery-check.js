@@ -72,7 +72,18 @@ try {
     const distance = await page.locator('body').getAttribute('data-run-distance');
     await page.clock.fastForward(5000);
     await expect(page.locator('body')).toHaveAttribute('data-run-distance', distance);
-    await page.locator('#run-resume').click();
+    const orderTime = await page.locator('#order-clock').textContent();
+    const toppings = await page.locator('body').getAttribute('data-toppings');
+    await expect(page.locator('#run-retry')).toHaveText('restart delivery');
+    await page.locator('#scene').screenshot({ path: `artifacts/screenshots/restart-${name}.png` });
+    await page.locator('#run-retry').click();
+    await page.clock.runFor(20);
+    expect(Number(await page.locator('body').getAttribute('data-run-distance'))).toBeLessThan(2);
+    await expect(page.locator('#run-condition')).toHaveText('box 100%');
+    await expect(page.locator('#run-hook')).toHaveText('release tow');
+    await expect(page.locator('#order-clock')).toHaveText(orderTime);
+    await expect(page.locator('body')).toHaveAttribute('data-toppings', toppings);
+    await expect(page.locator('#run-prompt')).toBeHidden();
     // No input must fail, not silently award a completed delivery.
     for (let i = 0; i < 370; i++) await page.clock.fastForward(250);
     await expect(page.locator('#run-retry')).toBeVisible();

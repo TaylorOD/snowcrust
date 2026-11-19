@@ -19,6 +19,7 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
       <p>on a phone, swipe or use the buttons below.</p>
       <label><input type="checkbox" id="run-assist"> slower road / no damage</label><br>
       <button id="run-resume">start skating</button><button id="run-retry" hidden>retry delivery</button>
+      <p id="run-restart-note" hidden>same pizza. fresh road. order time keeps counting.</p>
     </div>
     <div class="run-buttons">
       <button data-run="left" aria-label="Move left">←</button>
@@ -94,10 +95,15 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
       $('run-assist').disabled = false;
       $('run-address').textContent = address;
       $('run-retry').hidden = true;
+      $('run-restart-note').hidden = true;
       $('run-prompt').classList.remove('run-failed');
       $('run-result').hidden = true;
       $('run-resume').hidden = false;
       panel.querySelector('.run-prompt h2').textContent = 'your delivery.';
+    },
+    assisted(value) {
+      $('run-assist').checked = value;
+      $('run-assist').disabled = value;
     },
     hide() {
       panel.hidden = true;
@@ -108,6 +114,9 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
       $('run-resume').textContent = first ? 'start skating' : 'resume delivery';
       $('run-pause').hidden = value;
       $('run-start-note').hidden = !first;
+      $('run-retry').hidden = !value || first;
+      $('run-retry').textContent = 'restart delivery';
+      $('run-restart-note').hidden = !value || first;
       if (value) $('run-resume').focus({ preventScroll: true });
       else {
         host.focus({ preventScroll: true });
@@ -146,6 +155,8 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
         panel.querySelector('.run-prompt h2').textContent = state.failure;
         $('run-resume').hidden = true;
         $('run-retry').hidden = false;
+        $('run-retry').textContent = 'retry delivery';
+        $('run-restart-note').hidden = true;
         $('run-pause').hidden = true;
       }
       const exit = roadExitNotice(state);
