@@ -39,6 +39,9 @@ export async function checkCustomerOrder(page, baseUrl, name) {
   await finishHandoff(page);
   await expect(page.locator('#order-score')).toHaveText(name === 'mobile' ? '90' : '100');
   await expect(page.locator('#order-receipt')).toBeVisible();
+  await expect(page.locator('#receipt-title')).toHaveText(
+    name === 'mobile' ? 'Right pizza. Someone took a bite.' : 'Exactly what I ordered.'
+  );
   await expect(page.locator('#receipt-time')).toContainText(
     name === 'mobile' ? 'Late arrival.' : 'On time.'
   );
@@ -47,6 +50,9 @@ export async function checkCustomerOrder(page, baseUrl, name) {
     path: `artifacts/screenshots/order-receipt-${name}.png`,
     fullPage: true
   });
+  await page
+    .locator('#order-receipt')
+    .screenshot({ path: `artifacts/screenshots/receipt-detail-${name}.png` });
   const time = await page.locator('#order-clock').textContent();
   await page.locator('#replay').click();
   await page.clock.fastForward(10000);

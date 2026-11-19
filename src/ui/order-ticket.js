@@ -104,8 +104,10 @@ export function createOrderTicket() {
       $('call-state').textContent = 'delivery confirmed';
       $('order-score').textContent = `${result.score}`;
       $('receipt-title').textContent =
-        result.score === 100
-          ? 'Exactly what I ordered.'
+        !result.missing.length && !result.extras
+          ? result.bitten
+            ? 'Right pizza. Someone took a bite.'
+            : 'Exactly what I ordered.'
           : result.score >= 70
             ? 'Close. Read the ticket, Deliverator.'
             : 'That is not my order.';
