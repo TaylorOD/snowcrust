@@ -150,7 +150,7 @@ the manual long stop failed for a different reason. it spent about 28 extra seco
 
 played the published opening, road, both junctions and customer ending after the opening, exit and speed changes deployed. the full hook and pull were visible. the first tow held its cruising speed. a missed replacement hook did not stop delivery. the second half used phone buttons and finished with 100 percent cargo.
 
-the live order matched all three requested toppings. taking a bite disabled the bite button, carried through to the customer reaction and produced a 90 point receipt. the receipt correctly reported the 10 point bite penalty. its generic title still says to read the ticket, which is misleading when the toppings are correct. that copy should distinguish a bite from a recipe mistake.
+the live order matched all three requested toppings. taking a bite disabled the bite button, carried through to the customer reaction and produced a 90 point receipt. the receipt correctly reported the 10 point bite penalty. the receipt now distinguishes a bite from a recipe mistake. desktop and phone browser checks cover the correct recipe with and without a bite.
 
 ![published bite reaction](screenshots/live-bite-reaction.jpg)
 
