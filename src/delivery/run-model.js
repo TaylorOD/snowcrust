@@ -27,6 +27,7 @@ export function createDeliveryRun({ assisted = false, startTowed = true } = {}) 
     condition: 100,
     speed: startTowed ? trafficSpeed : 14,
     towed: startTowed,
+    towBlend: startTowed ? 1 : 0,
     towId: 0,
     targetId: 0,
     paused: false,
@@ -147,6 +148,9 @@ export function createDeliveryRun({ assisted = false, startTowed = true } = {}) 
         } else message('miss / bumper moved out of reach');
       }
     }
+    // Ease the load into the stance and cable. Physics still uses the actual
+    // catch immediately, while presentation settles over a fraction of a second.
+    state.towBlend += ((state.towed ? 1 : 0) - state.towBlend) * (1 - Math.exp(-10 * dt));
     const car = state.traffic[state.towId];
     const gap = state.towed ? towPose(car, state).gap : 10;
     const desired = state.approaching

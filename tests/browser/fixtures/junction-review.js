@@ -14,7 +14,10 @@ let run,
   next = 0,
   playing = false;
 const controls = createDeliveryControls(host, {
-  action: (name) => run.action(name),
+  action: (name) => {
+    document.getElementById('pilot').checked = false;
+    run.action(name);
+  },
   pause: () => {
     playing = false;
     controls.paused(true);
@@ -28,10 +31,14 @@ const controls = createDeliveryControls(host, {
 controls.show('DELIVERY / straight through both junctions');
 controls.paused(false);
 function step(dt) {
-  while (actions[next] && actions[next].at <= run.state.elapsed) run.action(actions[next++].name);
+  while (actions[next] && actions[next].at <= run.state.elapsed) {
+    const action = actions[next++];
+    if (document.getElementById('pilot').checked) run.action(action.name);
+  }
   run.update(dt);
 }
 function seek(distance) {
+  document.getElementById('pilot').checked = true;
   run = createDeliveryRun();
   next = 0;
   while (run.state.distance < distance && !run.state.failed && !run.state.arrived) step(1 / 120);
@@ -42,6 +49,16 @@ function seek(distance) {
 document
   .querySelectorAll('[data-distance]')
   .forEach((b) => (b.onclick = () => seek(Number(b.dataset.distance))));
+document.getElementById('free').onclick = () => {
+  seek(0);
+  run = createDeliveryRun({ startTowed: false });
+  document.getElementById('pilot').checked = false;
+};
+document.getElementById('step').onclick = () => {
+  playing = false;
+  document.getElementById('play').textContent = 'play';
+  step(0.1);
+};
 document.getElementById('play').onclick = () => {
   playing = !playing;
   document.getElementById('play').textContent = playing ? 'pause' : 'play';

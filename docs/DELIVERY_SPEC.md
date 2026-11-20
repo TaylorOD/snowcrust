@@ -58,6 +58,8 @@ these are repeatable acceptance scenarios, not a promise that every sequence of 
 
 ## controls and presentation
 
+Towing should brace the rider and tighten the line. Releasing should retract the cable while the rider coasts, then return to pushing as speed drops. Camera motion must follow actual speed and respect reduced motion. See the [towing review](TOWING_REVIEW.md) for outcomes and repeatable checks.
+
 Both traffic exits need overhead signs before and at the fork, repeated straight arrows on the delivery road and a visible curved branch for departing cars. Direction labels must remain readable on phone views. Road markings and signs must agree with the HUD. See the [exit review](EXIT_REVIEW.md) for the repeatable scene check.
 
 keyboard, touch buttons and all four swipe directions need to work. pause must freeze the road and order clock. resuming or rotating the screen must keep the rider and controls visible. sound starts off. slower road removes damage and labels the result as assisted. automatic delivery skips the playable road but keeps the ending.

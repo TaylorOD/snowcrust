@@ -17,11 +17,16 @@
         left: 0;
         right: 0;
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        white-space: nowrap;
         gap: 4px;
         background: #08131d;
         padding: 6px;
         z-index: 20;
+      }
+      nav > * {
+        flex-shrink: 0;
       }
       nav button {
         min-height: 40px;
@@ -45,13 +50,15 @@
       </div>
     </main>
     <nav aria-label="Junction review">
-      <button data-distance="330">freight approach</button
+      <label><input id="pilot" type="checkbox" checked /> replay inputs</label
+      ><button data-distance="0">opening tow</button><button id="free">free skate</button
+      ><button data-distance="330">freight approach</button
       ><button data-distance="420">freight turn</button
       ><button data-distance="810">traffic approach</button
       ><button data-distance="900">traffic turn</button
       ><button data-distance="445">freight ramp</button
-      ><button data-distance="932">traffic ramp</button><button id="play">play</button
-      ><output id="checkpoint"></output>
+      ><button data-distance="932">traffic ramp</button><button id="step">step 0.1s</button
+      ><button id="play">play</button><output id="checkpoint"></output>
     </nav>
     <script type="module" src="junction-review.js"></script>
   </body>
