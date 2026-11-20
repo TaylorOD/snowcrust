@@ -49,6 +49,20 @@ function seek(distance) {
 document
   .querySelectorAll('[data-distance]')
   .forEach((b) => (b.onclick = () => seek(Number(b.dataset.distance))));
+// Focused obstacle encounters use the real movement and collision model.
+// Traffic keeps its replayed position. The rider starts free skating in the lane.
+document.querySelectorAll('[data-hazard]').forEach((button) => {
+  button.onclick = () => {
+    const [distance, lane] = button.dataset.hazard.split(',').map(Number);
+    seek(distance - 35);
+    Object.assign(run.state, { lane, x: lane, towed: false, towBlend: 0 });
+    document.getElementById('pilot').checked = false;
+  };
+});
+document.getElementById('second').onclick = () => {
+  playing = false;
+  for (let i = 0; i < 120; i++) step(1 / 120);
+};
 document.getElementById('free').onclick = () => {
   seek(0);
   run = createDeliveryRun({ startTowed: false });

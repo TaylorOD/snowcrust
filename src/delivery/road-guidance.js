@@ -5,7 +5,7 @@ import { towPose } from './tow-traffic.js';
 export function roadGuidance(state) {
   if (state.failed) return state.failure;
   if (state.approaching) return 'address ahead / braking for the door';
-  if (state.messageTime > 0) return state.message;
+  if (state.messageTime > 0 && state.protection > 0) return state.message;
   if (state.towed) {
     const car = state.traffic[state.towId];
     if (car.exit && car.distance >= car.exit.distance - 62)
@@ -23,6 +23,7 @@ export function roadGuidance(state) {
       : hazard.type === 'rail'
         ? 'barrier / jump or change lanes'
         : 'blocked lane / steer clear';
+  if (state.messageTime > 0) return state.message;
   if (state.towed) return 'poon locked / steer freely / space to release';
   if (state.targetId >= 0) return 'bumper in reach / space to fire';
   const next = state.traffic
@@ -51,4 +52,15 @@ export function roadExitNotice(state) {
       ? 'release tow / delivery stays straight ↑'
       : 'keep straight ↑ / this is not your exit'
   };
+}
+
+// One marker per lane keeps farther hazards from covering the next decision.
+export function visibleHazardCues(distance) {
+  const lanes = new Set();
+  return hazards.filter((hazard) => {
+    const gap = hazard.distance - distance;
+    if (gap < 0 || gap > 60 || lanes.has(hazard.lane)) return false;
+    lanes.add(hazard.lane);
+    return true;
+  });
 }
