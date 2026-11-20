@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="stylesheet" href="src/styles/style.css" />
+    <link rel="stylesheet" href="src/styles/dispatch.css" />
+    <link rel="stylesheet" href="src/styles/delivery.css" />
+    <link rel="stylesheet" href="src/styles/mobile.css" />
+    <style>
+      .workbench {
+        height: calc(100dvh - 64px) !important;
+        min-height: 0 !important;
+      }
+      nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        background: #08131d;
+        padding: 6px;
+        z-index: 20;
+      }
+      nav button {
+        min-height: 40px;
+        background: #122b3d;
+        color: white;
+        border: 1px solid #569cd6;
+        font: 12px monospace;
+      }
+      #checkpoint {
+        color: #a9dfb0;
+        font: 12px monospace;
+      }
+    </style>
+  </head>
+  <body data-mode="running">
+    <main>
+      <div class="kitchen">
+        <section class="workbench">
+          <div id="scene" tabindex="0"><p id="loading">loading</p></div>
+        </section>
+      </div>
+    </main>
+    <nav aria-label="Junction review">
+      <button data-distance="330">freight approach</button
+      ><button data-distance="420">freight turn</button
+      ><button data-distance="810">traffic approach</button
+      ><button data-distance="900">traffic turn</button><button id="play">play</button
+      ><output id="checkpoint"></output>
+    </nav>
+    <script type="module" src="junction-review.js"></script>
+  </body>
+</html>
