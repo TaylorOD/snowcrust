@@ -20,10 +20,12 @@ const controls = createDeliveryControls(host, {
   },
   pause: () => {
     playing = false;
+    run.setPaused(true);
     controls.paused(true);
   },
   resume: () => {
     playing = true;
+    run.setPaused(false);
     controls.paused(false);
   },
   retry: () => seek(0)
@@ -83,7 +85,7 @@ function frame(now) {
   const dt = Math.min(0.04, (now - previous) / 1000);
   previous = now;
   if (playing) step(dt);
-  road.frame(run.state, false);
+  road.frame(run.state, document.getElementById('reduced').checked);
   controls.frame(run.state);
   document.getElementById('checkpoint').textContent = Math.round(run.state.distance) + ' m';
   view.renderer.render(view.scene, view.camera);

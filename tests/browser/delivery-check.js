@@ -86,13 +86,22 @@ try {
     await expect(page.locator('#order-clock')).toHaveText(orderTime);
     await expect(page.locator('body')).toHaveAttribute('data-toppings', toppings);
     await expect(page.locator('#run-prompt')).toBeHidden();
-    // No input must fail, not silently award a completed delivery.
-    for (let i = 0; i < 370; i++) await page.clock.fastForward(250);
+    // A hit explains the damage while leaving the controls usable.
+    for (let i = 0; i < 18; i++) await page.clock.fastForward(250);
+    await expect(page.locator('#run-condition')).toHaveText('box 65%');
+    await expect(page.locator('#run-recovery')).toBeVisible();
+    await expect(page.locator('#run-impact')).toContainText('barrier hit');
+    await expect(page.locator('#run-recovery-action')).toContainText('jump or steer now');
+    await expect(page.locator('[data-run="right"]')).toBeEnabled();
+    await page.locator('#scene').screenshot({ path: `artifacts/screenshots/recovery-${name}.png` });
+    // No input must still fail, not silently award a completed delivery.
+    for (let i = 0; i < 352; i++) await page.clock.fastForward(250);
     await expect(page.locator('#run-retry')).toBeVisible();
     await expect(page.locator('#handover')).toBeHidden();
     await page.locator('#run-retry').click();
+    await expect(page.locator('#run-recovery')).toBeHidden();
     const actions = [];
-    playDelivery((action) => actions.push(action));
+    playDelivery((action) => actions.push(action), { hitFirst: true });
     let clock = 0;
     for (const action of actions) {
       const at = Math.round(action.at * 1000);
@@ -113,6 +122,7 @@ try {
       .locator('#scene')
       .screenshot({ path: 'artifacts/screenshots/handoff-' + name + '.png' });
     await expect(page.locator('#receipt-condition')).toContainText('pizza condition');
+    await expect(page.locator('#receipt-condition')).toContainText('65/100');
     const receipt = await page.locator('#receipt-condition').textContent();
     const recordedTime = await page.locator('#receipt-time').textContent();
     await page.locator('#replay').click();

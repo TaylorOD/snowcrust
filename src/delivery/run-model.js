@@ -40,10 +40,13 @@ export function createDeliveryRun({ assisted = false, startTowed = true } = {}) 
     duck: 0,
     protection: 0,
     hits: 0,
+    lastImpact: null,
+    blocked: null,
     hookFlight: 0,
     hookCooldown: 0,
     hookId: -1,
     messageTime: 3,
+    messageKind: 'info',
     towSeconds: 0,
     catches: startTowed ? 1 : 0,
     cleared: 0,
@@ -57,7 +60,8 @@ export function createDeliveryRun({ assisted = false, startTowed = true } = {}) 
   let accumulator = 0,
     laneFrom = 0,
     laneTime = laneDuration;
-  function message(text, seconds = 1.5) {
+  function message(text, seconds = 1.5, kind = 'info') {
+    state.messageKind = kind;
     state.message = text;
     state.messageTime = seconds;
   }
@@ -98,20 +102,23 @@ export function createDeliveryRun({ assisted = false, startTowed = true } = {}) 
       }
     }
   }
-  function impact(amount, text) {
+  function impact(amount, text, cause) {
     if (state.assisted || state.protection) return;
+    const before = state.condition;
     state.condition = Math.max(0, state.condition - amount);
+    state.lastImpact = { cause, before, after: state.condition, at: state.elapsed };
     state.hits++;
     state.protection = 1.2;
     state.towed = false;
     state.hookFlight = 0;
-    message(text, 2);
+    message(text, 2, 'impact');
     if (!state.condition) fail('cargo lost / retry the delivery');
   }
   function step(dt) {
     const previousX = state.x,
       before = state.distance;
     state.approaching = state.distance >= approachStart;
+    state.blocked = null;
     state.protection = Math.max(0, state.protection - dt);
     state.messageTime = Math.max(0, state.messageTime - dt);
     state.hookCooldown = Math.max(0, state.hookCooldown - dt);
@@ -171,7 +178,7 @@ export function createDeliveryRun({ assisted = false, startTowed = true } = {}) 
       if (Math.abs(car.distance - state.distance) > 9) contacts.delete(car);
     if (contact && !contacts.has(contact)) {
       contacts.add(contact);
-      impact(35, 'traffic hit / cargo damaged');
+      impact(35, 'traffic hit / cargo damaged', 'traffic');
     }
     state.targetId = availableTow(state);
     if (state.towed && car.exit && car.distance >= car.exit.distance - 62) {
@@ -179,7 +186,7 @@ export function createDeliveryRun({ assisted = false, startTowed = true } = {}) 
       if (car.distance >= car.exit.distance + 18) {
         if (state.assisted) state.towed = false;
         else {
-          impact(15, 'late release / line cut / keep straight');
+          impact(15, 'late release / line cut / keep straight', 'exit');
           state.towed = false;
         }
       }
@@ -203,11 +210,13 @@ export function createDeliveryRun({ assisted = false, startTowed = true } = {}) 
         // rider ghost through the mesh. Steering, jumping or ducking frees them.
         state.distance = Math.max(before, hazard.distance - reach);
         state.speed = 0;
+        state.blocked = hazard.type;
         if (!hazardHits.has(hazard.id)) {
           hazardHits.add(hazard.id);
           impact(
             35,
-            hazard.type === 'frame' ? 'low beam / duck to clear' : 'blocked / find a clear lane'
+            hazard.type === 'frame' ? 'low beam / duck to clear' : 'blocked / find a clear lane',
+            hazard.type
           );
         }
       } else if (state.distance > hazard.distance + reach) {
