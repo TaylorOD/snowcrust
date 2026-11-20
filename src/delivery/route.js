@@ -4,11 +4,10 @@ export const approachStart = routeLength - 24;
 export const runTimeLimit = 90;
 export const laneWidth = 3.4;
 // Junctions belong to the road, not whichever car the player catches.
-export const freightExit = { distance: 430, side: 1, length: Math.PI * 12, name: 'freight exit' };
+export const freightExit = { distance: 430, side: 1, name: 'freight exit' };
 export const deliveryJunction = {
   distance: 910,
   side: -1,
-  length: Math.PI * 12,
   name: 'through traffic exit'
 };
 export const roadExits = [freightExit, deliveryJunction];

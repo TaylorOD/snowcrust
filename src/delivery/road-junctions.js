@@ -1,12 +1,11 @@
+import { exitRamp, rampLength } from './exit-ramp.js';
 import * as THREE from '../../vendor/three.module.js';
 import { roadExits, laneWidth } from './route.js';
 
-// The fork follows the same 24 metre turn as traffic. Its wide apron leaves
-// room for cars entering from any lane without painting a fourth player lane.
-export function createRoadJunctions(root, { box, batch }) {
+// Exit geometry shares the car path and the main road material.
+export function createRoadJunctions(root, { box, batch, asphalt }) {
   const green = new THREE.MeshBasicMaterial({ color: '#a9dfb0' });
   const amber = new THREE.MeshBasicMaterial({ color: '#efb45f' });
-  const asphalt = new THREE.MeshStandardMaterial({ color: '#223440', roughness: 0.9 });
   const arrowShape = new THREE.Shape();
   arrowShape.moveTo(-0.25, -1.8);
   arrowShape.lineTo(0.25, -1.8);
@@ -23,7 +22,7 @@ export function createRoadJunctions(root, { box, batch }) {
     marker.rotation.set(-Math.PI / 2, 0, 0);
     const turn = new THREE.Group();
     turn.rotation.y = yaw;
-    turn.position.set(x, 0.04, z);
+    turn.position.set(x, -0.19, z);
     turn.add(marker);
     group.add(turn);
   }
@@ -69,7 +68,7 @@ export function createRoadJunctions(root, { box, batch }) {
       gantry.add(delivery);
       const turn = panel(
         exit.side > 0 ? 'FREIGHT' : 'TRAFFIC',
-        exit.side > 0 ? 'EXIT →' : '← EXIT',
+        exit.side > 0 ? 'EXIT ↗' : '↖ EXIT',
         '#efb45f'
       );
       turn.position.set(exit.side * 1.6, 5.6, 0.2);
@@ -80,20 +79,16 @@ export function createRoadJunctions(root, { box, batch }) {
     for (const z of [80, 52, 25, 4, -18])
       for (const lane of [-1, 0, 1]) arrow(group, lane * laneWidth, z, 0, green);
 
-    // A curved strip replaces the old rectangular side street. A separate
-    // edge and amber arrows make the branch visible without relying on text.
+    // Only add pavement outside the main street. Nothing overlays its lanes.
     const vertices = [];
     const edge = [];
     for (let i = 0; i <= 32; i++) {
-      const angle = ((i / 32) * Math.PI) / 2;
-      for (const radius of [18, 30])
-        vertices.push(
-          exit.side * (24 - radius * Math.cos(angle)),
-          0.015,
-          -radius * Math.sin(angle)
-        );
+      const pose = exitRamp((i / 32) * rampLength, exit.side);
+      const center = Math.abs(pose.x);
+      for (const x of [Math.max(6, center - pose.halfWidth), Math.max(6, center + pose.halfWidth)])
+        vertices.push(exit.side * x, -0.21, -pose.forward);
       edge.push(
-        new THREE.Vector3(exit.side * (24 - 30 * Math.cos(angle)), 0.05, -30 * Math.sin(angle))
+        new THREE.Vector3(exit.side * Math.max(6, center + pose.halfWidth), -0.19, -pose.forward)
       );
     }
     const indices = [];
@@ -103,31 +98,21 @@ export function createRoadJunctions(root, { box, batch }) {
     }
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    geometry.setIndex(indices);
+    geometry.setIndex(exit.side > 0 ? indices : indices.reverse());
     geometry.computeVertexNormals();
     const surface = new THREE.Mesh(geometry, asphalt);
-    surface.material.side = THREE.DoubleSide;
+    surface.receiveShadow = true;
     group.add(surface);
     const border = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(edge),
       new THREE.LineBasicMaterial({ color: '#efb45f' })
     );
     group.add(border);
-    box(exit.side * 38, 0, -24, 28, 0.03, 12, '#223440', group);
-    for (const angle of [0.55, 0.9, 1.25, Math.PI / 2])
-      arrow(
-        group,
-        exit.side * 24 * (1 - Math.cos(angle)),
-        -24 * Math.sin(angle),
-        -exit.side * angle,
-        amber
-      );
-    // Short luminous posts trace the far edge of the fork, outside the lanes.
-    for (const angle of [0.7, 1, 1.3, Math.PI / 2]) {
-      const x = exit.side * (24 - 30 * Math.cos(angle));
-      const z = -30 * Math.sin(angle);
-      if (Math.abs(x) < 6.5) continue;
-      box(x, 0.55, z, 0.18, 1.1, 0.18, '#efb45f', group, true);
+    for (const distance of [35, 55, 80, 105]) {
+      const pose = exitRamp(distance, exit.side);
+      if (Math.abs(pose.x) > 6) arrow(group, pose.x, -pose.forward, pose.yaw - Math.PI / 2, amber);
+      const x = exit.side * (Math.abs(pose.x) + pose.halfWidth + 0.4);
+      box(x, 0.4, -pose.forward, 0.12, 1.2, 0.12, '#efb45f', group, true);
     }
     batch(group);
     return { exit, group, signs };
@@ -136,7 +121,8 @@ export function createRoadJunctions(root, { box, batch }) {
     frame(distance) {
       junctions.forEach(({ exit, group, signs }) => {
         group.position.z = 3 - (exit.distance - distance);
-        group.visible = distance > exit.distance - 180 && distance < exit.distance + 65;
+        group.visible =
+          distance > exit.distance - 180 && distance < exit.distance + rampLength + 20;
         // Passed gantries must not cross the chase camera or hide the rider.
         signs.forEach((gantry) => {
           gantry.visible = group.position.z + gantry.position.z < 1;
