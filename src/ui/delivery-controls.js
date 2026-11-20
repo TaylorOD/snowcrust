@@ -1,3 +1,4 @@
+import { recoveryFeedback } from '../delivery/recovery-feedback.js';
 import { routeLength, runTimeLimit } from '../delivery/route.js';
 import { roadGuidance, roadExitNotice } from '../delivery/road-guidance.js';
 
@@ -12,6 +13,10 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
       <span id="run-distance"></span><span id="run-speed"></span><span id="run-condition"></span><span id="run-clock"></span>
       <button id="run-pause" aria-label="Pause delivery">pause</button></div>
     <div id="run-exit" hidden><strong id="run-exit-title"></strong><span id="run-exit-action"></span></div>
+    <div id="run-recovery" hidden role="group" aria-label="Collision recovery">
+      <strong id="run-impact" role="status"></strong><span id="run-recovery-action"></span>
+      <small id="run-protection" aria-live="off"></small><div class="recovery-track" aria-hidden="true"><i></i></div>
+    </div>
     <div id="run-prompt" class="run-prompt">
       <h2>your delivery.</h2><p id="run-result" hidden></p><p>90 seconds. three lanes. keep the box intact.</p>
       <label class="run-assist-label"><input type="checkbox" id="run-assist"> slower road / no damage</label>
@@ -164,6 +169,19 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
       if (exit) {
         $('run-exit-title').textContent = exit.title;
         $('run-exit-action').textContent = exit.instruction;
+      }
+      const recovery = recoveryFeedback(state);
+      $('run-recovery').hidden = !recovery;
+      panel.style.setProperty('--impact-strength', recovery?.impact ?? 0);
+      panel.classList.toggle('cargo-protected', Boolean(recovery?.progress));
+      if (recovery) {
+        for (const [id, text] of [
+          ['run-impact', recovery.title],
+          ['run-recovery-action', recovery.instruction],
+          ['run-protection', recovery.protection]
+        ])
+          if ($(id).textContent !== text) $(id).textContent = text;
+        $('run-recovery').style.setProperty('--recovery-progress', recovery.progress);
       }
       const message = roadGuidance(state);
       $('run-hook').classList.toggle(
