@@ -1,4 +1,5 @@
 import { recoveryFeedback } from '../delivery/recovery-feedback.js';
+import { openingLesson } from '../delivery/opening-tutorial.js';
 import { routeLength, runTimeLimit } from '../delivery/route.js';
 import { roadGuidance, roadExitNotice } from '../delivery/road-guidance.js';
 
@@ -20,11 +21,14 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
     <div id="run-prompt" class="run-prompt">
       <h2>your delivery.</h2><p id="run-result" hidden></p><p>90 seconds. three lanes. keep the box intact.</p>
       <label class="run-assist-label"><input type="checkbox" id="run-assist"> slower road / no damage</label>
+      <label class="run-assist-label"><input type="checkbox" id="run-tips" checked> riding tips</label>
       <div class="run-prompt-actions"><button id="run-resume">start skating</button><button id="run-retry" hidden>retry delivery</button></div>
       <p id="run-restart-note" hidden>same pizza. fresh road. order time keeps counting.</p>
-      <p>← → steer · ↑ jump · ↓ duck<br>space to catch or release a tow</p>
-      <p><span id="run-start-note">already hooked. </span>one swipe, one lane. steer while attached. release before your tow turns. a late release damages the box.</p>
-      <p>on a phone, swipe or use the buttons below.</p>
+      <p id="run-start-note">already hooked. steer with ← → or swipe sideways. watch for the next tip below.</p>
+      <details><summary>all controls</summary>
+        <p>← → steer · ↑ jump · ↓ duck<br>space to catch or release a tow</p>
+        <p>swipe in the same direction or use the buttons. steer while attached. release before your tow takes an exit. your delivery stays straight.</p>
+      </details>
     </div>
     <div class="run-buttons">
       <button data-run="left" aria-label="Move left">←</button>
@@ -183,7 +187,16 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
           if ($(id).textContent !== text) $(id).textContent = text;
         $('run-recovery').style.setProperty('--recovery-progress', recovery.progress);
       }
-      const message = roadGuidance(state);
+      const lesson = $('run-tips').checked ? openingLesson(state) : null;
+      const message = lesson?.message ?? roadGuidance(state);
+      panel
+        .querySelectorAll('[data-run]')
+        .forEach((button) =>
+          button.classList.toggle(
+            'run-lesson',
+            lesson?.actions.includes(button.dataset.run) ?? false
+          )
+        );
       $('run-hook').classList.toggle(
         'tow-ready',
         !state.towed && state.targetId >= 0 && !$('run-hook').disabled
