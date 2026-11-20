@@ -14,12 +14,12 @@ export function createDeliveryControls(host, { action, pause, resume, retry }) {
     <div id="run-exit" hidden><strong id="run-exit-title"></strong><span id="run-exit-action"></span></div>
     <div id="run-prompt" class="run-prompt">
       <h2>your delivery.</h2><p id="run-result" hidden></p><p>90 seconds. three lanes. keep the box intact.</p>
+      <label class="run-assist-label"><input type="checkbox" id="run-assist"> slower road / no damage</label>
+      <div class="run-prompt-actions"><button id="run-resume">start skating</button><button id="run-retry" hidden>retry delivery</button></div>
+      <p id="run-restart-note" hidden>same pizza. fresh road. order time keeps counting.</p>
       <p>← → steer · ↑ jump · ↓ duck<br>space to catch or release a tow</p>
       <p><span id="run-start-note">already hooked. </span>one swipe, one lane. steer while attached. release before your tow turns. a late release damages the box.</p>
       <p>on a phone, swipe or use the buttons below.</p>
-      <label><input type="checkbox" id="run-assist"> slower road / no damage</label><br>
-      <button id="run-resume">start skating</button><button id="run-retry" hidden>retry delivery</button>
-      <p id="run-restart-note" hidden>same pizza. fresh road. order time keeps counting.</p>
     </div>
     <div class="run-buttons">
       <button data-run="left" aria-label="Move left">←</button>

@@ -2,7 +2,16 @@ import { maxToppings } from '../order/recipe.js';
 const $ = (id) => document.getElementById(id);
 export const say = (text) => ($('status').textContent = text);
 export function updateOrderView({ mode, toppingCount, bitten = false }) {
+  const previousMode = document.body.dataset.mode;
   document.body.dataset.mode = mode;
+  // Dispatch starts below the kitchen on phones. Bring the pickup into view
+  // before the animation begins so the first tow is not lost below the fold.
+  if (
+    mode === 'pickup' &&
+    previousMode !== mode &&
+    window.matchMedia('(max-width: 1000px)').matches
+  )
+    requestAnimationFrame(() => $('scene').scrollIntoView({ block: 'start', behavior: 'instant' }));
   document.body.dataset.bitten = String(bitten);
   $('assisted-label').hidden = !['prep', 'baked', 'sliced'].includes(mode);
   $('bite').hidden = mode !== 'sliced';

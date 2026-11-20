@@ -1,3 +1,4 @@
+import { checkMobileLayout } from './mobile-layout-check.js';
 import { finishHandoff } from './finish-handoff.js';
 import { sceneFrame } from './browser-scene-frame.js';
 import { chromium, expect } from '@playwright/test';
@@ -19,6 +20,7 @@ async function checkedPage(options) {
 try {
   const page = await checkedPage({ viewport: { width: 1440, height: 1050 } });
   const baseUrl = process.env.TEST_BASE_URL ?? 'http://127.0.0.1:5177';
+  await checkMobileLayout(browser, baseUrl);
   await page.goto(baseUrl);
   await page.waitForSelector('canvas');
   const canvas = await page.locator('canvas').boundingBox();
