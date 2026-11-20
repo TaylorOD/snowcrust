@@ -24,6 +24,14 @@
   outline: 3px solid #e9ba71;
   outline-offset: 2px;
 }
+#run-panel button.run-lesson {
+  border: 2px solid #e9ba71;
+  box-shadow: inset 0 0 0 1px #e9ba71;
+}
+.run-prompt summary {
+  cursor: pointer;
+  color: #e9ba71;
+}
 .run-hud {
   display: flex;
   flex-wrap: wrap;

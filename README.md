@@ -36,6 +36,8 @@ one authored 960 metre route. three lanes. moving traffic, parked cars, road wor
 
 touch buttons work too. the controls stay inside the play area.
 
+riding tips teach steering, jump timing, duck timing, release and another catch as you reach them. the matching button gets an outline. tips follow your lane and current tow. turn them off in the pause menu. all controls are there too.
+
 the full pickup plays first, including the hook and pull away. you start the road attached. fifteen cars cruise at 72 km/h with room between them. a clean run keeps a tow for long stretches. free skating settles at 50 km/h and can finish without catching another car.
 
 one press or swipe moves one lane. the tow supplies speed while you steer, jump and duck. the low coupe fits under a beam that you still need to duck under.

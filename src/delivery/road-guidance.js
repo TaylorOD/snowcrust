@@ -12,12 +12,7 @@ export function roadGuidance(state) {
     if (car.exit && car.distance >= car.exit.distance - 62)
       return 'tow turning ' + (car.exit.side > 0 ? 'right' : 'left') + ' / release now';
   }
-  const hazard = hazards.find(
-    (h) =>
-      h.distance > state.distance - 3 &&
-      h.distance - state.distance < Math.max(35, state.speed * 2.5) &&
-      Math.abs(h.lane - state.x) < 0.65
-  );
+  const hazard = nextLaneHazard(state);
   if (hazard)
     return hazard.type === 'frame'
       ? 'low beam / duck or change lanes'
@@ -46,6 +41,15 @@ export function roadGuidance(state) {
   if (next && Math.abs(next.x - state.x) > 0.35)
     return 'tow ahead / move ' + (next.x < state.x ? 'left' : 'right');
   return 'free skating / watch for a bumper';
+}
+
+export function nextLaneHazard(state) {
+  return hazards.find(
+    (h) =>
+      h.distance > state.distance - 3 &&
+      h.distance - state.distance < Math.max(35, state.speed * 2.5) &&
+      Math.abs(h.lane - state.x) < 0.65
+  );
 }
 
 // The junction remains visible even after a hit or a change of tow car.
