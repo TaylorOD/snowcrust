@@ -50,3 +50,15 @@ test('the push foot reaches the road while the front foot stays planted', () => 
   assert.ok(rider.getObjectByName('back-shoe').position.y < 0);
   assert.equal(rider.getObjectByName('front-shoe').position.y, 0);
 });
+
+test('fast coasting keeps both feet on the board after release', () => {
+  const rider = rig();
+  createSkatingMotion(rider).frame(
+    { speed: 19, towBlend: 0, towed: false, elapsed: Math.PI / 4 },
+    false
+  );
+  for (const side of ['front', 'back']) {
+    assert.equal(rider.getObjectByName(side + '-shoe').position.y, 0);
+    assert.ok(Math.abs(rider.getObjectByName(side + '-shoe').position.z) < 0.1);
+  }
+});

@@ -1,3 +1,4 @@
+import { createTowLine } from './tow-line.js';
 import { rampLength } from './exit-ramp.js';
 import { createRoadJunctions } from './road-junctions.js';
 import { frameRoadCamera } from './road-camera.js';
@@ -174,12 +175,7 @@ export function createRunScene(scene, camera, models) {
     }
     return group;
   });
-  const cableGeometry = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(),
-    new THREE.Vector3()
-  ]);
-  const cable = new THREE.Line(cableGeometry, new THREE.LineBasicMaterial({ color: '#a9ebee' }));
-  root.add(cable);
+  const cable = createTowLine(root);
   const target = new THREE.Mesh(
     new THREE.TorusGeometry(0.35, 0.035, 6, 20),
     new THREE.MeshBasicMaterial({ color: '#8ab575' })
@@ -271,21 +267,16 @@ export function createRunScene(scene, camera, models) {
       });
       const selected = state.towed ? state.towId : state.hookFlight ? state.hookId : state.targetId;
       const car = selected >= 0 ? towCars[selected] : null;
-      target.visible = Boolean(car) && !state.towed;
+      target.visible =
+        Boolean(car) && !state.towed && (!state.hookCooldown || state.hookFlight > 0);
       if (car) target.position.set(car.position.x, 0.65, car.position.z + 2.2);
       target.scale.setScalar(reduced ? 1 : 1 + Math.sin(state.elapsed * 4) * 0.12);
-      cable.visible = (state.towed || state.hookFlight > 0) && Boolean(car);
-      const points = cableGeometry.attributes.position;
       skating.launcher.localToWorld(hand.set(0.2, 0, 0));
-      points.setXYZ(0, hand.x, hand.y, hand.z);
       if (car) {
         car.updateMatrixWorld(true);
         car.localToWorld(rear.set(-2.17, 0.65, 0));
-        if (!state.towed) rear.lerpVectors(hand, rear, 1 - state.hookFlight / 0.24);
-        points.setXYZ(1, rear.x, rear.y, rear.z);
       }
-      points.needsUpdate = true;
-      cableGeometry.computeBoundingSphere();
+      cable.frame(state, hand, car ? rear : null, reduced);
       billboard.position.z = -30 + (state.distance % 90);
       billboard.visible =
         state.distance < routeLength - 60 &&

@@ -4,6 +4,20 @@ import * as THREE from 'three';
 import { frameRoadCamera } from '../../src/delivery/road-camera.js';
 import { laneWidth } from '../../src/delivery/route.js';
 
+test('cruising opens the view while reduced motion keeps a fixed field of view', () => {
+  const camera = new THREE.PerspectiveCamera(60, 1.6, 0.1, 200);
+  const position = new THREE.Vector3(),
+    aim = new THREE.Vector3();
+  frameRoadCamera(camera, { x: 0, speed: 14 }, false, position, aim);
+  const skating = camera.fov;
+  frameRoadCamera(camera, { x: 0, speed: 20 }, false, position, aim);
+  assert.ok(camera.fov > skating + 7);
+  frameRoadCamera(camera, { x: 0, speed: 14 }, true, position, aim);
+  const reduced = camera.fov;
+  frameRoadCamera(camera, { x: 0, speed: 20 }, true, position, aim);
+  assert.equal(camera.fov, reduced);
+});
+
 test('portrait keeps the courier and cargo inside the view in every lane', () => {
   for (const aspect of [320 / 720, 390 / 844, 0.79, 1.5]) {
     for (const x of [-1, -0.5, 0, 0.5, 1]) {
