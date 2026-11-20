@@ -1,3 +1,4 @@
+import { checkDeliveryInputs } from './input-check.js';
 import { playDelivery } from '../delivery-pilot.js';
 import { finishHandoff } from './finish-handoff.js';
 import { chromium, expect } from '@playwright/test';
@@ -6,6 +7,7 @@ const browser = await chromium.launch({
   args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader']
 });
 try {
+  await checkDeliveryInputs(browser, process.env.TEST_BASE_URL ?? 'http://127.0.0.1:5177');
   for (const [name, width, height] of [
     ['desktop', 1440, 1050],
     ['mobile', 390, 844]

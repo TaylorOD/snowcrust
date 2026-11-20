@@ -160,7 +160,7 @@ this is one authored route. the junctions are traffic exits, not selectable deli
 
 physical iPhone and Android performance, Safari and Firefox, sound quality by ear and a long session performance profile remain unverified. the browser review does not establish a real device frame rate.
 
-keyboard aliases, held key suppression and background tab pause are present in the input handler. arrows, space, pause buttons and gestures were exercised, but every keyboard alias and background browser combination was not separately tested in this pass. do not describe that as exhaustive input coverage.
+the delivery browser suite now checks every arrow and WASD alias, space, escape, held key suppression, typing focus, focused button activation, all four swipe directions, small gestures and cancelled touches against the real input controller. a separate fixture models the visibility event and confirms it pauses active controls and leaves hidden controls alone. that checks the handler, not actual background tabs or mobile app suspension. the full road checks still cover movement, collisions, restart, retry and handoff. this is not exhaustive device coverage.
 
 the visual review did not show the earlier box through torso problem in the sampled pickup, road and handoff poses. it cannot prove that every possible pose is free of clipping. mathematical clearance tests cover the modeled grip and cargo positions.
 
