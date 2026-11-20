@@ -1,3 +1,4 @@
+import { exitRamp } from './exit-ramp.js';
 import { hazards, laneWidth, freightExit, deliveryJunction } from './route.js';
 
 // Cars advance in world metres independently of the rider. Relative positions
@@ -34,19 +35,14 @@ function roadLane(car, distance) {
   return { x, turn };
 }
 
-// The exit is a real side street at the same world position as the scenery.
+// The exit follows the same gradual ramp as the scenery.
 export { freightExit } from './route.js';
 export function trafficLane(car, distance) {
   const exit = car.exit;
   if (!exit || distance < exit.distance) return roadLane(car, distance);
   const from = roadLane(car, exit.distance).x;
-  const t = Math.min(1, (distance - exit.distance) / freightExit.length);
-  const angle = (t * Math.PI) / 2;
-  const beyond = Math.max(0, distance - exit.distance - freightExit.length);
-  return {
-    x: from + (exit.side * (24 * (1 - Math.cos(angle)) + beyond)) / laneWidth,
-    turn: (exit.side * Math.sin(angle)) / laneWidth
-  };
+  const ramp = exitRamp(distance - exit.distance, exit.side, from * laneWidth);
+  return { x: ramp.x / laneWidth, turn: Math.tan(Math.PI / 2 - ramp.yaw) / laneWidth };
 }
 
 export function createTraffic() {
@@ -103,12 +99,15 @@ export function advanceTraffic(traffic, seconds, rider = null) {
 }
 
 export function towPose(car, state) {
-  const exitProgress = car.exit
-    ? Math.max(0, Math.min(1, (car.distance - car.exit.distance) / freightExit.length))
-    : 0;
-  const forward = exitProgress
-    ? car.exit.distance + 24 * Math.sin((exitProgress * Math.PI) / 2)
-    : car.distance;
+  const ramp =
+    car.exit && car.distance >= car.exit.distance
+      ? exitRamp(
+          car.distance - car.exit.distance,
+          car.exit.side,
+          roadLane(car, car.exit.distance).x * laneWidth
+        )
+      : null;
+  const forward = car.distance;
   const gap = forward - state.distance;
   return {
     distance: forward,
@@ -120,7 +119,7 @@ export function towPose(car, state) {
       Math.abs(trafficLane(car, car.distance + 20).x - car.x) > 0.15,
     x: car.x * laneWidth,
     z: 3 - gap,
-    yaw: exitProgress ? Math.PI / 2 - (car.exit.side * exitProgress * Math.PI) / 2 : car.yaw
+    yaw: ramp ? ramp.yaw : car.yaw
   };
 }
 export function availableTow(state) {

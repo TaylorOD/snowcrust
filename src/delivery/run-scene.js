@@ -1,3 +1,4 @@
+import { rampLength } from './exit-ramp.js';
 import { createRoadJunctions } from './road-junctions.js';
 import { frameRoadCamera } from './road-camera.js';
 import { createStreetDetails } from './street-details.js';
@@ -87,7 +88,9 @@ export function createRunScene(scene, camera, models) {
     return mesh;
   }
   box(0, -0.36, -60, 12, 0.3, 160, '#18232e');
-  for (const side of [-1, 1]) box(side * 8, -0.25, -60, 4, 0.5, 160, '#374958');
+  const sidewalks = [];
+  for (let i = 0; i < 22; i++)
+    for (const side of [-1, 1]) sidewalks.push(box(side * 8, -0.25, -i * 8, 4, 0.5, 8, '#374958'));
   const markings = [];
   for (let i = 0; i < 28; i++)
     for (const x of [-1.7, 1.7]) markings.push(box(x, -0.195, -i * 5, 0.06, 0.01, 2.4, '#8cb0bb'));
@@ -113,7 +116,7 @@ export function createRunScene(scene, camera, models) {
     batch(group);
     blocks.push(group);
   }
-  const junctions = createRoadJunctions(root, { box, batch });
+  const junctions = createRoadJunctions(root, { box, batch, asphalt: material('#18232e') });
   const streets = createStreetDetails(root, { box, sign, batch });
   const rider = models.rider;
   rider.position.set(0, 0, 3);
@@ -227,6 +230,16 @@ export function createRunScene(scene, camera, models) {
       markings.forEach((m, i) => {
         m.position.z = 12 - ((Math.floor(i / 2) * 5 - (state.distance % 5) + 140) % 140);
       });
+      sidewalks.forEach((tile, i) => {
+        tile.position.z = 12 - ((Math.floor(i / 2) * 8 - (state.distance % 8) + 176) % 176);
+        const world = state.distance + 3 - tile.position.z;
+        tile.visible = !roadExits.some(
+          (exit) =>
+            Math.sign(tile.position.x) === exit.side &&
+            world > exit.distance - 4 &&
+            world < exit.distance + rampLength
+        );
+      });
       blocks.forEach((b, i) => {
         b.position.z = 16 - ((Math.floor(i / 2) * 16 - (state.distance % 16) + 128) % 128);
         const world = state.distance + 3 - b.position.z;
@@ -237,7 +250,7 @@ export function createRunScene(scene, camera, models) {
             (exit) =>
               Math.sign(b.position.x) === exit.side &&
               world > exit.distance - 15 &&
-              world < exit.distance + 50
+              world < exit.distance + rampLength
           );
       });
       junctions.frame(state.distance);
