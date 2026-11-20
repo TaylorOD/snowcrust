@@ -1,9 +1,10 @@
+import { createRoadJunctions } from './road-junctions.js';
 import { frameRoadCamera } from './road-camera.js';
 import { createStreetDetails } from './street-details.js';
 import { createSkatingMotion } from './skating-motion.js';
 import * as THREE from '../../vendor/three.module.js';
-import { hazards, laneWidth, routeLength, deliveryJunction } from './route.js';
-import { towCars as traffic, towPose, freightExit } from './tow-traffic.js';
+import { hazards, laneWidth, routeLength, roadExits } from './route.js';
+import { towCars as traffic, towPose } from './tow-traffic.js';
 
 // The road moves beneath a stationary rider. All objects are allocated once.
 export function createRunScene(scene, camera, models) {
@@ -112,17 +113,7 @@ export function createRunScene(scene, camera, models) {
     batch(group);
     blocks.push(group);
   }
-  const exitRoad = new THREE.Group();
-  root.add(exitRoad);
-  box(19, 0.01, -16, 26, 0.02, 36, '#18232e', exitRoad);
-  for (const x of [8, 12, 16, 20, 24]) box(x, 0.025, -16, 2, 0.01, 0.12, '#8cb0bb', exitRoad);
-  const exitSign = sign('FREIGHT EXIT →', 4.5, 4.5, -60, 9);
-  const straightSign = sign('DELIVERY ↑', -2.5, 5.9, -60, 6);
-  const finalExitSign = sign('← TRAFFIC / DELIVERY ↑', 0, 4.8, -60, 10);
-  for (const z of [-8, -16, -24]) {
-    const arrow = sign('→', 7, 1.3, z, 3);
-    exitRoad.add(arrow);
-  }
+  const junctions = createRoadJunctions(root, { box, batch });
   const streets = createStreetDetails(root, { box, sign, batch });
   const rider = models.rider;
   rider.position.set(0, 0, 3);
@@ -191,11 +182,6 @@ export function createRunScene(scene, camera, models) {
     new THREE.MeshBasicMaterial({ color: '#8ab575' })
   );
   root.add(target);
-  const lastJunction = new THREE.Group();
-  root.add(lastJunction);
-  box(-19, 0.01, 0, 26, 0.02, 36, '#18232e', lastJunction);
-  for (const x of [-8, -12, -16, -20, -24])
-    box(x, 0.025, 0, 2, 0.01, 0.12, '#8cb0bb', lastJunction);
   const billboard = sign('RadiKS / KOURIER ROUTE', -7, 6, -28, 7);
   const aim = new THREE.Vector3(),
     position = new THREE.Vector3();
@@ -247,18 +233,14 @@ export function createRunScene(scene, camera, models) {
         b.visible =
           world < routeLength - 20 &&
           !(b.position.x < 0 && world > routeLength - 70) &&
-          !(
-            b.position.x > 0 &&
-            world > freightExit.distance - 15 &&
-            world < freightExit.distance + 50
+          !roadExits.some(
+            (exit) =>
+              Math.sign(b.position.x) === exit.side &&
+              world > exit.distance - 15 &&
+              world < exit.distance + 50
           );
       });
-      exitRoad.position.z = 3 - (freightExit.distance - state.distance);
-      exitSign.position.z = exitRoad.position.z - 14;
-      straightSign.position.z = exitSign.position.z;
-      exitSign.visible = straightSign.visible = exitSign.position.z < -3;
-      finalExitSign.position.z = 3 - (deliveryJunction.distance - state.distance) - 15;
-      finalExitSign.visible = finalExitSign.position.z < -3;
+      junctions.frame(state.distance);
       obstacles.forEach((object, i) => {
         object.position.z = 3 - (hazards[i].distance - state.distance);
         object.visible = object.position.z > -65 && object.position.z < 8;
@@ -291,9 +273,12 @@ export function createRunScene(scene, camera, models) {
       }
       points.needsUpdate = true;
       cableGeometry.computeBoundingSphere();
-      lastJunction.position.z = 3 - (deliveryJunction.distance - state.distance);
       billboard.position.z = -30 + (state.distance % 90);
-      billboard.visible = state.distance < routeLength - 60;
+      billboard.visible =
+        state.distance < routeLength - 60 &&
+        !roadExits.some(
+          (exit) => state.distance > exit.distance - 150 && state.distance < exit.distance + 50
+        );
       frameRoadCamera(camera, state, reduced, position, aim);
       camera.position.lerp(position, blend);
       camera.lookAt(aim);
