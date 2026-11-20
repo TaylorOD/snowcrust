@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="src/styles/dispatch.css" />
     <link rel="stylesheet" href="src/styles/orders.css" />
     <link rel="stylesheet" href="src/styles/delivery.css" />
+    <link rel="stylesheet" href="src/styles/mobile.css" />
   </head>
   <body>
     <header class="header">
@@ -85,6 +86,9 @@
             <div class="section-label">
               <span>Toppings</span><span id="topping-count">0 / 80</span>
             </div>
+            <div class="small-actions">
+              <button id="sprinkle">+ add 5</button><button id="undo" disabled>undo last</button>
+            </div>
             <div class="toppings" role="group" aria-label="Toppings">
               <button data-topping="pepperoni" aria-pressed="true">
                 <span class="ingredient pepperoni" aria-hidden="true"></span><span>Pepperoni</span>
@@ -128,9 +132,6 @@
               <button data-topping="anchovy" aria-pressed="false">
                 <span class="ingredient anchovy" aria-hidden="true"></span><span>Anchovy</span>
               </button>
-            </div>
-            <div class="small-actions">
-              <button id="sprinkle">+ add 5</button><button id="undo" disabled>undo last</button>
             </div>
             <div class="ticket-line"></div>
             <button id="special" class="special">
