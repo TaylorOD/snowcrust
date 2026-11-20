@@ -23,7 +23,6 @@ export function createStreetDetails(root, { box, sign, batch }) {
   label(dispatch, 'C0saN0stra / DISPATCH', -7, 3.7, 6);
   for (let i = 0; i < 4; i++) {
     box(-6.3, 0.02, i * 2 - 3, 1, 0.02, 0.08, '#d7b275', dispatch);
-    box(-7, 0.3, i * 1.2 - 2, 0.5, 0.6, 0.6, '#847250', dispatch);
   }
 
   const overpass = place(195);

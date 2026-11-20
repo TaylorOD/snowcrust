@@ -14,6 +14,14 @@ test('obstacles get action guidance before contact', () => {
   state.distance = 140;
   assert.match(roadGuidance(state), /duck or change lanes/);
 });
+
+test('a tow confirmation cannot hide an approaching obstacle', () => {
+  const { state } = createDeliveryRun();
+  Object.assign(state, { distance: 40, speed: 20, messageTime: 3 });
+  assert.match(roadGuidance(state), /jump or change lanes/);
+  Object.assign(state, { protection: 1, message: 'traffic hit / cargo damaged' });
+  assert.equal(roadGuidance(state), state.message);
+});
 test('exit warning takes priority over obstacles', () => {
   const { state } = createDeliveryRun();
   Object.assign(state, { towed: true, distance: 365, messageTime: 0 });

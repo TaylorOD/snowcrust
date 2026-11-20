@@ -1,3 +1,4 @@
+import { createRoadObstacles } from './road-obstacles.js';
 import { createTowLine } from './tow-line.js';
 import { rampLength } from './exit-ramp.js';
 import { createRoadJunctions } from './road-junctions.js';
@@ -5,7 +6,7 @@ import { frameRoadCamera } from './road-camera.js';
 import { createStreetDetails } from './street-details.js';
 import { createSkatingMotion } from './skating-motion.js';
 import * as THREE from '../../vendor/three.module.js';
-import { hazards, laneWidth, routeLength, roadExits } from './route.js';
+import { laneWidth, routeLength, roadExits } from './route.js';
 import { towCars as traffic, towPose } from './tow-traffic.js';
 
 // The road moves beneath a stationary rider. All objects are allocated once.
@@ -149,32 +150,7 @@ export function createRunScene(scene, camera, models) {
     });
     towCars.push(car);
   }
-  const obstacles = hazards.map((hazard, i) => {
-    const group = new THREE.Group();
-    root.add(group);
-    group.position.x = hazard.lane * laneWidth;
-    if (hazard.type === 'works') {
-      box(0, 0.55, 0, 2.5, 1.1, 2, '#58606a', group);
-      for (const x of [-0.9, 0, 0.9]) box(x, 0.6, 1.03, 0.18, 0.7, 0.03, '#e59f50', group);
-      box(0, -0.18, -2, 3, 0.02, 6, '#39434b', group);
-    } else if (hazard.type === 'van') {
-      const car = models.cars[i % models.cars.length].clone(true);
-      car.position.set(0, 0, 0);
-      car.rotation.set(0, Math.PI / 2, 0);
-      group.add(car);
-      for (const x of [-1.4, 1.4]) box(x, -0.18, 0, 0.07, 0.02, 7, '#d7b275', group);
-    } else if (hazard.type === 'rail') {
-      box(0, 0.3, 0, 2.7, 0.65, 0.35, '#e59f50', group);
-      box(0, -0.18, -2, 2.8, 0.02, 4, '#39434b', group);
-      for (const x of [-0.9, 0, 0.9]) box(x, 0.3, 0.19, 0.12, 0.5, 0.02, '#14212b', group);
-    } else {
-      for (const x of [-1.35, 1.35]) box(x, 1.5, 0, 0.12, 3.3, 0.12, '#718b99', group);
-      box(0, 1.55, 0, 2.8, 0.3, 0.25, '#e59f50', group);
-      box(0, 3, 0, 2.8, 0.12, 0.12, '#718b99', group);
-      box(1.2, 2.2, 0, 0.2, 1.3, 0.2, '#425f71', group);
-    }
-    return group;
-  });
+  const obstacles = createRoadObstacles(root, { box, batch, models });
   const cable = createTowLine(root);
   const target = new THREE.Mesh(
     new THREE.TorusGeometry(0.35, 0.035, 6, 20),
@@ -250,10 +226,7 @@ export function createRunScene(scene, camera, models) {
           );
       });
       junctions.frame(state.distance);
-      obstacles.forEach((object, i) => {
-        object.position.z = 3 - (hazards[i].distance - state.distance);
-        object.visible = object.position.z > -65 && object.position.z < 8;
-      });
+      obstacles.frame(state.distance);
       towCars.forEach((car, i) => {
         const pose = towPose(state.traffic[i], state);
         car.position.set(pose.x, 0, pose.z);
